@@ -6,10 +6,9 @@
 import scrapy
 
 
-class KeywordSearchItem(scrapy.Item):
+class SearchResultItem(scrapy.Item):
     keyword = scrapy.Field()
     video_id = scrapy.Field()
-    channel_id = scrapy.Field()
     crawled_at = scrapy.Field()
 
 

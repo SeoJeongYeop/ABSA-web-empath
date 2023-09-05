@@ -100,7 +100,7 @@ FEED_EXPORT_ENCODING = "utf-8"
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
-with open(os.path.join(BASE_DIR, "secret.key"), "r") as f:
+with open(os.path.join(BASE_DIR, "secret.json"), "r") as f:
     secret = json.loads(f.read())
 
 
