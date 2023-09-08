@@ -1,11 +1,7 @@
 import scrapy
 from urllib import parse
-from bs4 import element
 from bs4 import BeautifulSoup
 
-import re
-import sys
-import json
 import logging
 from datetime import datetime
 
@@ -13,14 +9,13 @@ from ..items import *
 from ..preprocess import cleaning_text, remove_escape
 
 NAVER_SEARCH_LINK = 'https://search.naver.com/search.naver'
-NAVER_NEWS_LINK = 'https://entertain.naver.com/read'
-NAVER_REACTION_LINK = 'https://news.like.naver.com/v1/search/contents'
 
 
 class NaverNewsKeywordSpider(scrapy.Spider):
     name = 'NaverNewsKeyword'
+    allowed_domains = ['search.naver.com', 'n.news.naver.com']
 
-    def __init__(self, keywords='', ds='', de='', count='', **kwargs):
+    def __init__(self, keywords='', ds='', de='', limit='', **kwargs):
         super().__init__(**kwargs)
         try:
             # 키워드의 공백 제거하여 저장
@@ -40,7 +35,8 @@ class NaverNewsKeywordSpider(scrapy.Spider):
                 self.date_filter = True
 
             # 스크랩할 기사 개수
-            self.count = int(count) if count != '' else 100
+            self.limit = int(limit) if limit != '' else 100
+            self.count = 0
             # 쿼리스트링
             self.params = {
                 'where': 'news',
@@ -108,11 +104,14 @@ class NaverNewsKeywordSpider(scrapy.Spider):
                     'keyword': response.meta['keyword'],
                     'summary': summary,
                     'press_name': press_name
-                }
+                },
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'}
             )
 
         # 다음 페이지 이동하여 재귀적으로 스크래핑
-        if len(news_items) == 0:
+        self.count += len(news_items)
+        if len(news_items) != 0 and self.count < self.limit:
             self.params['start'] = response.meta['start'] + 10
             query_string = parse.urlencode(self.params)
 
@@ -152,7 +151,8 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         press_name = soup.select_one('.media_end_head_top_logo > img')['alt']
         print("parse_news_page, press_name", press_name)
 
-        path_params = response.url.split("/")
+        parsed_url = parse.urlparse(response.url)
+        path_params = parsed_url.path.split("/")
         aid = path_params[-1]
         oid = path_params[-2]
 
