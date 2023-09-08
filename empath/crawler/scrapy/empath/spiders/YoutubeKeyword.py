@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 
 class YoutubeKeywordSpider(scrapy.Spider):
-    name = 'yt_keyword'
+    name = 'YoutubeKeyword'
     allowed_domains = ['youtube.com', 'googleapis.com']
     start_urls = ['https://www.googleapis.com/youtube/v3/']
 
