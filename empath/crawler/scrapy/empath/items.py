@@ -42,3 +42,26 @@ class YoutubeChannelItem(scrapy.Item):
     subscriber_count = scrapy.Field()
     video_count = scrapy.Field()
     crawled_at = scrapy.Field()
+
+
+class NaverNewsItem(scrapy.Item):
+    title = scrapy.Field()
+    keyword = scrapy.Field()
+    press_name = scrapy.Field()
+    link = scrapy.Field()
+    summary = scrapy.Field()
+    crawled_at = scrapy.Field()
+
+
+class NaverNewsArticleItem(scrapy.Item):
+    ''' URL 구조
+    1) article/:oid/:aid
+    2) /news?oid={}&aid={}
+    '''
+    oid = scrapy.Field()
+    aid = scrapy.Field()
+    title = scrapy.Field()
+    content = scrapy.Field()
+    published_at = scrapy.Field()
+    press_name = scrapy.Field()
+    crawled_at = scrapy.Field()

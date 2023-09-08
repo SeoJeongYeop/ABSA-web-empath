@@ -1,0 +1,169 @@
+import scrapy
+from urllib import parse
+from bs4 import element
+from bs4 import BeautifulSoup
+
+import re
+import sys
+import json
+import logging
+from datetime import datetime
+
+from ..items import *
+from ..preprocess import cleaning_text, remove_escape
+
+NAVER_SEARCH_LINK = 'https://search.naver.com/search.naver'
+NAVER_NEWS_LINK = 'https://entertain.naver.com/read'
+NAVER_REACTION_LINK = 'https://news.like.naver.com/v1/search/contents'
+
+
+class NaverNewsKeywordSpider(scrapy.Spider):
+    name = 'NaverNewsKeyword'
+
+    def __init__(self, keywords='', ds='', de='', count='', **kwargs):
+        super().__init__(**kwargs)
+        try:
+            # 키워드의 공백 제거하여 저장
+            self.keywords = [keyword.strip()
+                             for keyword in keywords.split(',')]
+
+            self.date_filter = False
+
+            # ds: date_start, de: date_end
+            if ds != '' and de != '':
+                # 사이 간격의 날짜로 필터링해서 검색
+                self.ds, self.de = ds, de
+                self.date_filter = True
+            elif ds != '':
+                # de를 today로 설정하여 검색
+                self.ds, self.de = ds, datetime.today().strftime("%Y.%m.%d")
+                self.date_filter = True
+
+            # 스크랩할 기사 개수
+            self.count = int(count) if count != '' else 100
+            # 쿼리스트링
+            self.params = {
+                'where': 'news',
+                'start': 1,
+            }
+        except Exception as e:
+            logging.exception(f"{self.name} 파라미터 설정 오류: {e}")
+
+    def start_requests(self):
+        if self.date_filter:
+            self.params['ds'] = self.ds
+            self.params['de'] = self.de
+            from_date = self.ds.replace(".", "")
+            to_date = self.de.replace(".", "")
+            self.params['nso'] = f'so%3Ar%2Cp%3Afrom{from_date}to{to_date}'
+
+        for keyword in self.keywords:
+            self.params['query'] = f'\"{keyword}\"'
+            query_string = parse.urlencode(self.params)
+            yield scrapy.Request(
+                f'{NAVER_SEARCH_LINK}?{query_string}',
+                self.parse_news_list,
+                meta={'keyword': keyword, 'start': 1}
+            )
+
+    def parse_news_list(self, response):
+        soup = BeautifulSoup(response.body, 'html.parser')
+        news_items = soup.select('div.news_area')
+
+        for news in news_items:
+            news_anchor = news.select_one(
+                'div.info_group > a.info:not(.press)')
+            if news_anchor is None:
+                continue
+            link = news_anchor['href']
+
+            print("parse.urlparse(link)", parse.urlparse(link))
+            if not 'sid' not in parse.urlparse(link):
+                continue
+
+            # 뉴스 제목 파싱
+            title = news.select_one('a.news_tit').text
+            # 언론사 파싱
+            press_name = news.select_one('div.info_group > a.info.press').text
+            print("press_name: ", press_name)
+            # 요약정보 파싱
+            summary = news.select_one('a.dsc_txt_wrap').text
+
+            # 키워드에 따른 뉴스 데이터 산출
+            newsItem = NaverNewsItem()
+            newsItem['title'] = title
+            newsItem['keyword'] = response.meta['keyword']
+            newsItem['press_name'] = press_name
+            newsItem['link'] = link
+            newsItem['summary'] = summary
+            newsItem['crawled_at'] = datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")
+            yield newsItem
+
+            # 뉴스 게시글 파싱 Request
+            yield scrapy.Request(
+                url=link,
+                callback=self.parse_news_page,
+                meta={
+                    'keyword': response.meta['keyword'],
+                    'summary': summary,
+                    'press_name': press_name
+                }
+            )
+
+        # 다음 페이지 이동하여 재귀적으로 스크래핑
+        if len(news_items) == 0:
+            self.params['start'] = response.meta['start'] + 10
+            query_string = parse.urlencode(self.params)
+
+            yield scrapy.Request(
+                f'{NAVER_SEARCH_LINK}?{query_string}',
+                self.parse_news_list,
+                meta={'keyword': response.meta["keyword"],
+                      'start': response.meta['start'] + 10},
+                dont_filter=True
+            )
+
+    def article_date_to_datetime(self, article_date: str):
+        '''
+        인터넷 기사의 한국어 날짜입력을 datetime에 맞게 변환
+        '''
+
+        # 오후/오후를 대/소문자로 변환
+        article_date = article_date.replace("오후", "PM").replace("오전", "AM")
+
+        # 문자열을 datetime 객체로 파싱
+        datetime_obj = datetime.strptime(article_date, "%Y.%m.%d. %p %I:%M")
+        formatted_datetime = datetime_obj.strftime("%Y-%m-%d %H:%M:%S")
+
+        return formatted_datetime
+
+    def parse_news_page(self, response):
+        soup = BeautifulSoup(response.body, 'html.parser')
+
+        title = soup.select_one("#title_area > span").text
+        title = remove_escape(title)
+        content = soup.select_one("#dic_area").text
+        content = cleaning_text(content)
+        published_at = soup.select_one(
+            "span.media_end_head_info_datestamp_time").text
+        published_at = self.article_date_to_datetime(published_at)
+
+        press_name = soup.select_one('.media_end_head_top_logo > img')['alt']
+        print("parse_news_page, press_name", press_name)
+
+        path_params = response.url.split("/")
+        aid = path_params[-1]
+        oid = path_params[-2]
+
+        articleItem = NaverNewsArticleItem()
+        articleItem['oid'] = oid,
+        articleItem['aid'] = aid,
+        articleItem['title'] = title,
+        articleItem['content'] = content,
+        articleItem['published_at'] = published_at,
+        articleItem['press_name'] = press_name,
+        articleItem['crawled_at'] = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")
+
+        yield articleItem
