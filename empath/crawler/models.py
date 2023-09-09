@@ -22,10 +22,10 @@ class YoutubeVideo(models.Model):
     crawled_at = models.DateTimeField(auto_now_add=True)
 
 
-class YoutubeComment(models.Model):
+class YoutubeVideoComment(models.Model):
     id = models.AutoField(primary_key=True)
-    comment = models.TextField()
-    video = models.ForeignKey(YoutubeVideo, models.CASCADE)
+    content = models.TextField()
+    video_id = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
 
 
