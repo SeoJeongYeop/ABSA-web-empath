@@ -73,7 +73,7 @@ class EmpathPipeline:
         insert_sql = f'INSERT INTO {table_name}({", ".join(columns)})'
         variables = ",".join([f":{i}" for i in range(len(columns))])
         # variables = ",".join(["%s"]*len(item)) # MySQL
-        insert_sql += f'VALUES({variables})'
+        insert_sql += f' VALUES({variables})'
         values = [item[col] for col in columns]
 
         try:
@@ -90,7 +90,7 @@ class EmpathPipeline:
 item_to_table_mapping = {
     YoutubeVideoItem: "crawler_youtubevideo",
     YoutubeSearchResultItem: "crawler_youtubesearchresult",
-    YoutubeCommentItem: "crawler_youtubecomment",
+    YoutubeCommentItem: "crawler_youtubevideocomment",
     NaverNewsItem: "crawler_naversearchresult",
     NaverNewsArticleItem: "crawler_navernewsarticle",
 }

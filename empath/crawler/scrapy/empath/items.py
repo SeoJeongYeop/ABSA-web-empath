@@ -28,7 +28,7 @@ class YoutubeVideoItem(scrapy.Item):
 
 
 class YoutubeCommentItem(scrapy.Item):
-    comment = scrapy.Field()
+    content = scrapy.Field()
     video_id = scrapy.Field()
     crawled_at = scrapy.Field()
 
