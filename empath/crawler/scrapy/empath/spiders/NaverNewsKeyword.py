@@ -127,7 +127,7 @@ class NaverNewsKeywordSpider(scrapy.Spider):
 
     def article_date_to_datetime(self, article_date: str):
         '''
-        인터넷 기사의 한국어 날짜입력을 datetime에 맞게 변환
+        인터넷 기사의 한국어 날짜입력을 datetime으로 변환
         '''
 
         # 오후/오후를 대/소문자로 변환

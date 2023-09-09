@@ -7,13 +7,22 @@ from urllib.parse import urlencode
 
 
 class YoutubeKeywordSpider(scrapy.Spider):
+    '''
+    YouTube Data API의 Search: list를 사용하여 유튜브 검색결과를 수집합니다.
+    수집 개수와 관계없이 호출할 때 마다 API Cost가 100 사용됩니다.
+    '''
     name = 'YoutubeKeyword'
     allowed_domains = ['youtube.com', 'googleapis.com']
     start_urls = ['https://www.googleapis.com/youtube/v3/']
 
-    def __init__(self, keywords='', *args, **kwargs):
+    def __init__(self, keywords='', limit='', *args, **kwargs):
         self.keywords = keywords
         self.keyword_list = keywords.split(',')
+        try:
+            self.limit = int(limit) if limit != '' else 5
+            self.limit = min(self.limit, 50)
+        except:
+            self.limit = 5
 
     def start_requests(self):
         for keyword in self.keyword_list:
@@ -28,7 +37,7 @@ class YoutubeKeywordSpider(scrapy.Spider):
             "key": YOUTUBE_API_KEY,  # api key
             "q": keyword,  # 검색어
             "type": "video",  # video, channel, playlist 중에 리소스 선택
-            "maxResults": 10  # 반환하는 결과 개수
+            "maxResults": self.limit  # 반환하는 결과 개수
         }
         query_string = urlencode(params)
         SEARCH_URL = f"{BASE_SEARCH_URL}?{query_string}"
