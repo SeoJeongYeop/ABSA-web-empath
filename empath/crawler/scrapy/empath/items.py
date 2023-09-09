@@ -6,7 +6,7 @@
 import scrapy
 
 
-class SearchResultItem(scrapy.Item):
+class YoutubeSearchResultItem(scrapy.Item):
     keyword = scrapy.Field()
     video_id = scrapy.Field()
     crawled_at = scrapy.Field()

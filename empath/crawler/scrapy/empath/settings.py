@@ -66,9 +66,9 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    "empath.pipelines.EmpathPipeline": 300,
-# }
+ITEM_PIPELINES = {
+    "empath.pipelines.EmpathPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -112,7 +112,11 @@ def get_secret(key, secret=secret):
         raise ImproperlyConfigured(msg)
 
 
+# Oracle DB Setting
+DATABASE_USER = get_secret('DATABASE_USER')
 DATABASE_PASSWORD = get_secret('DATABASE_PASSWORD')
+DATABASE_NAME = get_secret('DATABASE_NAME')
+
 
 # YouTube API KEY
 YOUTUBE_API_KEY = get_secret('YOUTUBE_API_KEY')

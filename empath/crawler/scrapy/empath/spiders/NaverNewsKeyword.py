@@ -72,16 +72,19 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             if news_anchor is None:
                 continue
             link = news_anchor['href']
-
-            print("parse.urlparse(link)", parse.urlparse(link))
             if not 'sid' not in parse.urlparse(link):
+                # 정상적으로 크롤링 가능한 기사인지 확인
                 continue
 
             # 뉴스 제목 파싱
             title = news.select_one('a.news_tit').text
             # 언론사 파싱
-            press_name = news.select_one('div.info_group > a.info.press').text
-            print("press_name: ", press_name)
+            press_box = news.select_one('div.info_group > a.info.press')
+            press_name = press_box.text
+            press_icon = press_box.select_one('i.ico_pick')
+            if press_icon:
+                press_name = press_name.replace(press_icon.text, '').strip()
+
             # 요약정보 파싱
             summary = news.select_one('a.dsc_txt_wrap').text
 
@@ -92,8 +95,7 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             newsItem['press_name'] = press_name
             newsItem['link'] = link
             newsItem['summary'] = summary
-            newsItem['crawled_at'] = datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")
+            newsItem['crawled_at'] = datetime.now()
             yield newsItem
 
             # 뉴스 게시글 파싱 Request
@@ -133,9 +135,8 @@ class NaverNewsKeywordSpider(scrapy.Spider):
 
         # 문자열을 datetime 객체로 파싱
         datetime_obj = datetime.strptime(article_date, "%Y.%m.%d. %p %I:%M")
-        formatted_datetime = datetime_obj.strftime("%Y-%m-%d %H:%M:%S")
 
-        return formatted_datetime
+        return datetime_obj
 
     def parse_news_page(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
@@ -143,13 +144,14 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         title = soup.select_one("#title_area > span").text
         title = remove_escape(title)
         content = soup.select_one("#dic_area").text
+        logging.debug(f"content before {content}")
         content = cleaning_text(content)
+        logging.debug(f"content after {content}")
         published_at = soup.select_one(
             "span.media_end_head_info_datestamp_time").text
         published_at = self.article_date_to_datetime(published_at)
 
         press_name = soup.select_one('.media_end_head_top_logo > img')['alt']
-        print("parse_news_page, press_name", press_name)
 
         parsed_url = parse.urlparse(response.url)
         path_params = parsed_url.path.split("/")
@@ -157,13 +159,12 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         oid = path_params[-2]
 
         articleItem = NaverNewsArticleItem()
-        articleItem['oid'] = oid,
-        articleItem['aid'] = aid,
-        articleItem['title'] = title,
-        articleItem['content'] = content,
-        articleItem['published_at'] = published_at,
-        articleItem['press_name'] = press_name,
-        articleItem['crawled_at'] = datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S")
+        articleItem['oid'] = oid
+        articleItem['aid'] = aid
+        articleItem['title'] = title
+        articleItem['content'] = content
+        articleItem['published_at'] = published_at
+        articleItem['press_name'] = press_name
+        articleItem['crawled_at'] = datetime.now()
 
         yield articleItem

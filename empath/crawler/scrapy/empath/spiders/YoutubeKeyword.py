@@ -1,5 +1,5 @@
 import scrapy
-from ..items import SearchResultItem
+from ..items import YoutubeSearchResultItem
 from ..settings import YOUTUBE_API_KEY
 import json
 from datetime import datetime
@@ -43,9 +43,8 @@ class YoutubeKeywordSpider(scrapy.Spider):
             results = res_json['items']
             for result in results:
                 if result['id']['kind'] == 'youtube#video':
-                    item = SearchResultItem()
+                    item = YoutubeSearchResultItem()
                     item['keyword'] = response.meta['keyword']
                     item['video_id'] = result['id']['videoId']
-                    now = datetime.now()
-                    item['crawled_at'] = now.strftime("%Y-%m-%d %H:%M:%S")
+                    item['crawled_at'] = datetime.now()
                     yield item
