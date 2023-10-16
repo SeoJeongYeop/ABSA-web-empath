@@ -6,7 +6,7 @@ from transformers import BartTokenizer
 from transformers.models.bart.modeling_bart import BartEncoder
 import torch
 
-from utils import greedy_generate
+from utils import greedy_generate, device
 
 
 class FBartEncoder(nn.Module):
@@ -28,7 +28,7 @@ class FBartEncoder(nn.Module):
         if max_len is None:
             max_len = seq_len.max().item()
         batch_size = seq_len.size(0)
-        seq_range = torch.arange(0, max_len).long()
+        seq_range = torch.arange(0, max_len, device=device).long()
         seq_range_expand = seq_range.unsqueeze(0).expand(batch_size, max_len)
         seq_len_expand = seq_len.unsqueeze(1).expand_as(seq_range_expand)
         return seq_range_expand < seq_len_expand
@@ -52,7 +52,7 @@ class FBartDecoder(nn.Module):
         if use_encoder_mlp:
             self.encoder_mlp = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size),
-                nn.Dropout(0.3),
+                # nn.Dropout(0.3),
                 nn.ReLU(),
                 nn.Linear(hidden_size, hidden_size)
             )
@@ -86,6 +86,7 @@ class FBartDecoder(nn.Module):
                                 encoder_attention_mask=encoder_pad_mask,
                                 attention_mask=decoder_pad_mask)
         else:
+            tokens = tokens[:, :-1]  # valid 크기오류 방지
             dict = self.decoder(input_ids=tokens,
                                 encoder_hidden_states=encoder_outputs,
                                 encoder_attention_mask=encoder_pad_mask,
@@ -97,11 +98,6 @@ class FBartDecoder(nn.Module):
 
         # first get the
         # bsz x max_len x 1
-        print(hidden_state)
-        print(hidden_state.shape)
-
-        print(self.decoder.embed_tokens.weight[2:3].shape)
-
         eos_scores = F.linear(
             hidden_state, self.decoder.embed_tokens.weight[2:3])
         # bsz x max_len x num_class

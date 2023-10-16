@@ -6,6 +6,12 @@ import numpy as np
 from torch.utils.data import Dataset
 import torch.nn.functional as F
 
+device = torch.device('cpu')
+if torch.backends.mps.is_available():
+    device = torch.device('mps')
+elif torch.cuda.is_available():
+    device = torch.device('cuda:0')
+
 
 def cmp_aspect(v1, v2):
     # cmp_to_key 를 사용할 함수
@@ -81,14 +87,15 @@ class ABSADataset(Dataset):
     def __getitem__(self, idx):
         ins = self.data[idx]
         prepared_target = self.prepare_target(ins)
-        target = prepared_target['tgt_tokens']
-        target_spans = prepared_target['target_span']
-        src_tokens = prepared_target['src_tokens']
+        # 바로 텐서로 변환
+        target = torch.tensor(prepared_target['tgt_tokens'])
+        target_spans = torch.tensor(prepared_target['target_span'])
+        src_tokens = torch.tensor(prepared_target['src_tokens'])
 
         return {
-            'src_tokens': src_tokens,
-            'tgt_tokens': target,
-            'target_span': target_spans,
+            'src_tokens': torch.LongTensor(src_tokens).to(device),
+            'tgt_tokens': torch.LongTensor(target).to(device),
+            'target_span': target_spans.to(device),
             'src_seq_len': len(src_tokens),
             'tgt_seq_len': len(target)
         }
@@ -252,23 +259,42 @@ def _no_beam_search_generate(decoder, state: dict, tokens=None, max_length=20,
     return token_ids
 
 
-class Seq2SeqLoss(torch.nn.Module):
-    # 손실함수 설정
-
+class Seq2SeqLoss:
     def __init__(self):
-        super(Seq2SeqLoss, self).__init__()
+        pass
 
-    def forward(self, tgt_tokens, pred):
-        # assuming 0 is pad_token_id, adjust if needed
-        mask = (tgt_tokens != 0)
-        tgt_tokens = tgt_tokens[:, 1:].masked_fill(~mask[:, 1:], -100)
+    @staticmethod
+    def seq_len_to_mask(seq_len, max_len=None):
+        """
+        Convert sequence lengths to masks.
+        :param seq_len: torch.Tensor, shape (batch_size,)
+        :param max_len: int, the maximum length of sequences
+        :return: torch.BoolTensor, shape (batch_size, max_len)
+        """
+        if max_len is None:
+            max_len = seq_len.max().item()
+        mask = torch.arange(max_len, device=device).expand(
+            len(seq_len), max_len) < seq_len.unsqueeze(-1)
+        return mask
+
+    def get_loss(self, tgt_tokens, pred, tgt_seq_len):
+        """
+        :param tgt_tokens: bsz x max_len, [sos, tokens, eos]
+        :param pred: bsz x max_len-1 x vocab_size
+        :return:
+        """
+        tgt_seq_len = tgt_seq_len - 1
+        mask = self.seq_len_to_mask(
+            tgt_seq_len, max_len=tgt_tokens.size(1) - 1).eq(0)
+        tgt_tokens = tgt_tokens[:, 1:].masked_fill(mask, -100)
         loss = F.cross_entropy(target=tgt_tokens, input=pred.transpose(1, 2))
         return loss
 
 
-def get_optimizer(model, lr_list=[1e-4, 1e-4, 1e-4],  wd_list=[1e-2, 1e-2, 0]):
-    # 옵티마이저 설정
+# 옵티마이저 설정
+def get_nested_optimizer(model, lr_list=[1e-4, 1e-4, 1e-4],  wd_list=[1e-2, 1e-2, 0]):
     parameters = []
+
     params = {'lr': lr_list[0], 'weight_decay': wd_list[0]}
     params['params'] = [param for name, param in model.named_parameters() if not (
         'bart_encoder' in name or 'bart_decoder' in name)]
@@ -293,10 +319,19 @@ def get_optimizer(model, lr_list=[1e-4, 1e-4, 1e-4],  wd_list=[1e-2, 1e-2, 0]):
 
 
 def pad_batch(batch):
-    max_src_seq_len = max([sample['src_seq_len'] for sample in batch])
-    max_tgt_seq_len = max([sample['tgt_seq_len'] for sample in batch])
+    max_src_len = max([x['src_seq_len'] for x in batch])
+    max_tgt_len = max([x['tgt_seq_len'] for x in batch])
 
-    for sample in batch:
-        sample['src_tokens'] += [1] * (max_src_seq_len - sample['src_seq_len'])
-        sample['tgt_tokens'] += [1] * (max_tgt_seq_len - sample['tgt_seq_len'])
-    return batch
+    src_tokens = torch.stack([torch.cat([x['src_tokens'], torch.zeros(
+        max_src_len - x['src_seq_len'], device=device)]) for x in batch])
+    tgt_tokens = torch.stack([torch.cat([x['tgt_tokens'], torch.zeros(
+        max_tgt_len - x['tgt_seq_len'], device=device)]) for x in batch])
+    target_span = [x['target_span'] for x in batch]  # 패딩이 필요하지 않은 경우에는 리스트로 유지
+
+    return {
+        'src_tokens': src_tokens.to(device),
+        'tgt_tokens': tgt_tokens.to(device),
+        'target_span': target_span,
+        'src_seq_len': torch.tensor([x['src_seq_len'] for x in batch]).to(device),
+        'tgt_seq_len': torch.tensor([x['tgt_seq_len'] for x in batch]).to(device)
+    }
