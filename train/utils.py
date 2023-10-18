@@ -6,12 +6,6 @@ import numpy as np
 from torch.utils.data import Dataset
 import torch.nn.functional as F
 
-device = torch.device('cpu')
-if torch.backends.mps.is_available():
-    device = torch.device('mps')
-elif torch.cuda.is_available():
-    device = torch.device('cuda:0')
-
 
 def cmp_aspect(v1, v2):
     # cmp_to_key 를 사용할 함수
@@ -91,23 +85,25 @@ class ABSADataset(Dataset):
         target = torch.tensor(prepared_target['tgt_tokens'])
         target_spans = torch.tensor(prepared_target['target_span'])
         src_tokens = torch.tensor(prepared_target['src_tokens'])
-
         return {
-            'src_tokens': torch.LongTensor(src_tokens).to(device),
-            'tgt_tokens': torch.LongTensor(target).to(device),
-            'target_span': target_spans.to(device),
+            'src_tokens': torch.LongTensor(src_tokens),
+            'tgt_tokens': torch.LongTensor(target),
+            'target_span': torch.LongTensor(target_spans),
             'src_seq_len': len(src_tokens),
-            'tgt_seq_len': len(target)
+            'tgt_seq_len': len(target),
+            'raw_words': ins['raw_words'],
+            'words': ins['words'],
+            'aspects': ins['aspects'],
+            'opinions': ins['opinions']
         }
 
     def prepare_target(self, ins):
         # Byte pair
-        raw_words = ins['raw_words']
+        raw_words = ins['words']
         word_bpes = [[self.tokenizer.bos_token_id]]
         for word in raw_words:
             bpes = self.tokenizer.tokenize(word, add_prefix_space=True)
             bpes = self.tokenizer.convert_tokens_to_ids(bpes)
-
             word_bpes.append(bpes)
         word_bpes.append([self.tokenizer.eos_token_id])
 
@@ -203,7 +199,7 @@ def _no_beam_search_generate(decoder, state: dict, tokens=None, max_length=20,
 
     # Begin decoding
     # Assuming the decoder's forward method returns scores
-    scores = decoder(
+    scores = decoder.decode(
         tokens,
         state['encoder_outputs'],
         state['encoder_mask'],
@@ -212,22 +208,31 @@ def _no_beam_search_generate(decoder, state: dict, tokens=None, max_length=20,
     next_tokens = scores.argmax(dim=-1, keepdim=True)
     token_ids = torch.cat([tokens, next_tokens], dim=1)
     cur_len = token_ids.size(1)
-    dones = token_ids.new_zeros(token_ids.size(0)).bool()
-    if eos_token_id:
-        dones |= next_tokens.squeeze(1).eq(eos_token_id)
+    dones = token_ids.new_zeros(batch_size).eq(1).__or__(
+        next_tokens.squeeze(1).eq(eos_token_id))
 
     # Compute max length if scaled by source length
-    if max_len_a != 0 and state in 'encoder_mask':
-        max_lengths = (state['encoder_mask'].sum(dim=1).float()
-                       * max_len_a).long() + max_length
+    if max_len_a != 0:
+        if 'encoder_mask' in state:
+            max_lengths = (state['encoder_mask'].sum(dim=1).float()
+                           * max_len_a).long() + max_length
+        else:
+            max_lengths = torch.full(
+                (tokens.size(0),), fill_value=max_length, dtype=torch.long, device=device)
+        real_max_length = max_lengths.max().item()
     else:
-        max_lengths = torch.full(
-            (tokens.size(0),), fill_value=max_length, dtype=torch.long, device=device)
+        real_max_length = max_length
+        if 'encoder_mask' in state:
+            max_lengths = state['encoder_mask'].new_ones(
+                state['encoder_mask'].size(0)).long()*max_length
+        else:
+            max_lengths = tokens.new_full(
+                (tokens.size(0),), fill_value=max_length, dtype=torch.long)
 
     # Continue decoding until max length is reached or all sequences have terminated
-    while cur_len < max_lengths.max().item():
+    while cur_len < real_max_length:
         # Assuming the decoder's forward method returns scores
-        scores = decoder(
+        scores = decoder.decode(
             token_ids,
             state['encoder_outputs'],
             state['encoder_mask'],
@@ -247,13 +252,23 @@ def _no_beam_search_generate(decoder, state: dict, tokens=None, max_length=20,
             scores.masked_fill_(eos_mask.unsqueeze(0).bool(), token_scores)
 
         next_tokens = scores.argmax(dim=-1, keepdim=True)
-        token_ids = torch.cat([token_ids, next_tokens], dim=-1)
+        next_tokens = next_tokens.squeeze(-1)
 
-        if eos_token_id:
-            dones |= next_tokens.squeeze(1).eq(eos_token_id)
+        if eos_token_id != -1:
+            next_tokens = next_tokens.masked_fill(
+                max_lengths.eq(cur_len+1), eos_token_id)
+        next_tokens = next_tokens.masked_fill(
+            dones, pad_token_id)
+        tokens = next_tokens.unsqueeze(1)
+
+        # batch_size x max_len
+        token_ids = torch.cat([token_ids, tokens], dim=-1)
+
+        end_mask = next_tokens.eq(eos_token_id)
+        dones = dones.__or__(end_mask)
         cur_len += 1
 
-        if dones.all():
+        if dones.min() == 1:
             break
 
     return token_ids
@@ -273,7 +288,7 @@ class Seq2SeqLoss:
         """
         if max_len is None:
             max_len = seq_len.max().item()
-        mask = torch.arange(max_len, device=device).expand(
+        mask = torch.arange(max_len, device=seq_len.device).expand(
             len(seq_len), max_len) < seq_len.unsqueeze(-1)
         return mask
 
@@ -294,7 +309,6 @@ class Seq2SeqLoss:
 # 옵티마이저 설정
 def get_nested_optimizer(model, lr_list=[1e-4, 1e-4, 1e-4],  wd_list=[1e-2, 1e-2, 0]):
     parameters = []
-
     params = {'lr': lr_list[0], 'weight_decay': wd_list[0]}
     params['params'] = [param for name, param in model.named_parameters() if not (
         'bart_encoder' in name or 'bart_decoder' in name)]
@@ -318,20 +332,33 @@ def get_nested_optimizer(model, lr_list=[1e-4, 1e-4, 1e-4],  wd_list=[1e-2, 1e-2
     return optimizer
 
 
+def get_adam_optimizer(model, lr=1e-4, wd=0):
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+    return optimizer
+
+
 def pad_batch(batch):
     max_src_len = max([x['src_seq_len'] for x in batch])
     max_tgt_len = max([x['tgt_seq_len'] for x in batch])
 
-    src_tokens = torch.stack([torch.cat([x['src_tokens'], torch.zeros(
-        max_src_len - x['src_seq_len'], device=device)]) for x in batch])
-    tgt_tokens = torch.stack([torch.cat([x['tgt_tokens'], torch.zeros(
-        max_tgt_len - x['tgt_seq_len'], device=device)]) for x in batch])
-    target_span = [x['target_span'] for x in batch]  # 패딩이 필요하지 않은 경우에는 리스트로 유지
+    src_tokens = torch.stack([torch.cat(
+        [x['src_tokens'], torch.ones(max_src_len - x['src_seq_len'])]) for x in batch])
+    tgt_tokens = torch.stack([torch.cat(
+        [x['tgt_tokens'], torch.ones(max_tgt_len - x['tgt_seq_len'])]) for x in batch])
+    target_span = [x['target_span'] for x in batch]
+    raw_words = [x['raw_words'] for x in batch]
+    words = [x['words'] for x in batch]
+    aspects = [x['aspects'] for x in batch]
+    opinions = [x['opinions'] for x in batch]
 
     return {
-        'src_tokens': src_tokens.to(device),
-        'tgt_tokens': tgt_tokens.to(device),
+        'src_tokens': src_tokens,
+        'tgt_tokens': tgt_tokens,
         'target_span': target_span,
-        'src_seq_len': torch.tensor([x['src_seq_len'] for x in batch]).to(device),
-        'tgt_seq_len': torch.tensor([x['tgt_seq_len'] for x in batch]).to(device)
+        'src_seq_len': torch.tensor([x['src_seq_len'] for x in batch]),
+        'tgt_seq_len': torch.tensor([x['tgt_seq_len'] for x in batch]),
+        'raw_words': raw_words,
+        'words': words,
+        'aspects': aspects,
+        'opinions': opinions
     }

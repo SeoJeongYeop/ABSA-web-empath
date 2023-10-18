@@ -6,7 +6,7 @@ from transformers import BartTokenizer
 from transformers.models.bart.modeling_bart import BartEncoder
 import torch
 
-from utils import greedy_generate, device
+from utils import greedy_generate
 
 
 class FBartEncoder(nn.Module):
@@ -28,7 +28,7 @@ class FBartEncoder(nn.Module):
         if max_len is None:
             max_len = seq_len.max().item()
         batch_size = seq_len.size(0)
-        seq_range = torch.arange(0, max_len, device=device).long()
+        seq_range = torch.arange(0, max_len).long()
         seq_range_expand = seq_range.unsqueeze(0).expand(batch_size, max_len)
         seq_len_expand = seq_len.unsqueeze(1).expand_as(seq_range_expand)
         return seq_range_expand < seq_len_expand
@@ -43,11 +43,12 @@ class FBartDecoder(nn.Module):
         causal_mask = causal_mask.triu(diagonal=1)
         self.register_buffer('causal_masks', causal_mask.float())
         self.pad_token_id = pad_token_id
-        self.label_start_id = label_ids[0]
-        self.label_end_id = label_ids[-1] + 1
+        self.label_start_id = label_ids[0]  # 50265
+        self.label_end_id = label_ids[-1] + 1  # 50268
+        # label_ids : [50265, 50266, 50267]
         mapping = torch.LongTensor([0, 2] + sorted(label_ids, reverse=False))
         self.register_buffer('mapping', mapping)
-        self.src_start_index = len(mapping)
+        self.src_start_index = len(mapping)  # 5
         hidden_size = decoder.embed_tokens.weight.size(1)
         if use_encoder_mlp:
             self.encoder_mlp = nn.Sequential(
@@ -57,9 +58,11 @@ class FBartDecoder(nn.Module):
                 nn.Linear(hidden_size, hidden_size)
             )
 
-    def forward(self, tokens, encoder_outputs, encoder_mask, src_tokens, first=None, past_key_values=None):
+    def forward(self, tokens, encoder_output, encoder_mask, src_tokens, first=None, past_key_values=None):
+        encoder_outputs = encoder_output
         encoder_pad_mask = encoder_mask
 
+        # eos is 1 이기 때문에 마킹하고 pad_mask로 만듦
         cumsum = tokens.eq(1).flip(dims=[1]).cumsum(dim=-1)
         tgt_pad_mask = cumsum.flip(dims=[1]).ne(cumsum[:, -1:])
 
@@ -86,7 +89,6 @@ class FBartDecoder(nn.Module):
                                 encoder_attention_mask=encoder_pad_mask,
                                 attention_mask=decoder_pad_mask)
         else:
-            tokens = tokens[:, :-1]  # valid 크기오류 방지
             dict = self.decoder(input_ids=tokens,
                                 encoder_hidden_states=encoder_outputs,
                                 encoder_attention_mask=encoder_pad_mask,
@@ -100,6 +102,7 @@ class FBartDecoder(nn.Module):
         # bsz x max_len x 1
         eos_scores = F.linear(
             hidden_state, self.decoder.embed_tokens.weight[2:3])
+
         # bsz x max_len x num_class
         tag_scores = F.linear(
             hidden_state, self.decoder.embed_tokens.weight[self.label_start_id:self.label_end_id])
