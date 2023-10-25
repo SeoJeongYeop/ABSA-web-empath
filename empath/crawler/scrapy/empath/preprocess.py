@@ -19,7 +19,7 @@ def remove_emoji(text):
     if len(emoji) > 0:
         emojis.append(emoji)
     # (powerful) 한글, 영어, 숫자, 페리오드, 콤마 남기고 제거, 자모 제거하지 않음
-    text = re.sub(r'[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9 ]', ' ', text)
+    text = re.sub(r'[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9` ]', ' ', text)
     text.replace(',', '')
     text = re.sub(' +', ' ', text).strip()
 
@@ -36,7 +36,7 @@ def remove_jamo(text):
         jamos.append(jamo)
 
     # 한글, 영어, 숫자, 페리오드, 콤마 남기고 제거, 자모도 제거
-    text = re.sub(r'[^가-힣a-zA-Z0-9., ]', ' ', text)
+    text = re.sub(r'[^가-힣a-zA-Z0-9.,` ]', ' ', text)
     # 중복 띄어쓰기 제거
     text = re.sub(' +', ' ', text).strip()
 
@@ -56,6 +56,8 @@ def cleaning_text(text):
     text = re.sub(r'(@[A-Za-z가-힣0-9_]+)|(#[A-Za-z가-힣0-9_]+)', '', text)
     # (정규화 대상 추가)출처 이후 문자열 제거
     text = re.sub(r'(출처).*', '출처', text)
+    # 따옴표 처리를 백틱(`)으로 통일
+    text = re.sub(r"""[“”‘’"']""", '`', text)
     # 말줄임표로 사용하는 페리오드 4개 이상은 3개로 축소
     text = re.sub(r'[.,]{4,}', '... ', text)
     text = re.sub(r'[.]{2}', '.', text)
