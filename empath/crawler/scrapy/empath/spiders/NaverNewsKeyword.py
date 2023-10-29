@@ -54,6 +54,7 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             self.params['nso'] = f'so%3Ar%2Cp%3Afrom{from_date}to{to_date}'
 
         for keyword in self.keywords:
+            logging.info(f"Request - {keyword}")
             self.params['query'] = f'\"{keyword}\"'
             query_string = parse.urlencode(self.params)
             yield scrapy.Request(

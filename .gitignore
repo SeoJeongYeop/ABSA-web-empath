@@ -126,3 +126,8 @@ staticfiles/
 ## Oracle DB
 *.sso
 *.ora
+
+#private
+sample/
+raw/
+empath/absa/checkpoint
