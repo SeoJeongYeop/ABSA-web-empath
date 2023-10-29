@@ -51,7 +51,7 @@ validation_mode = False
 
 
 # 데이터셋 설정
-BASE_DIR = './'
+BASE_DIR = '../'
 data_path = 'data/train_convert.json'
 valid_data_path = 'data/dev_convert.json'
 test_data_path = 'data/test_convert.json'
