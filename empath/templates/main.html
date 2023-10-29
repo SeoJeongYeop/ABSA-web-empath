@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ko">
+  {% include 'head.html' %}
+  <body>
+    {% include 'header.html' %}
+
+    <div id="body-wrapper" class="fouc">{% block content %} {% endblock %}</div>
+
+    {% include 'footer.html' %}
+  </body>
+  {% block script %} {% endblock %}
+</html>
