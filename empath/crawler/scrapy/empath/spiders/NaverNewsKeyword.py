@@ -15,9 +15,10 @@ class NaverNewsKeywordSpider(scrapy.Spider):
     name = 'NaverNewsKeyword'
     allowed_domains = ['search.naver.com', 'n.news.naver.com']
 
-    def __init__(self, keywords='', ds='', de='', limit='', **kwargs):
+    def __init__(self, task_id, keywords='', ds='', de='', limit='', **kwargs):
         super().__init__(**kwargs)
         try:
+            self.task_id = task_id
             # 키워드의 공백 제거하여 저장
             self.keywords = [keyword.strip()
                              for keyword in keywords.split(',')]
@@ -97,6 +98,8 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             newsItem['link'] = link
             newsItem['summary'] = summary
             newsItem['crawled_at'] = datetime.now()
+            newsItem['task_id'] = self.task_id
+
             yield newsItem
 
             # 뉴스 게시글 파싱 Request
@@ -167,5 +170,6 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         articleItem['published_at'] = published_at
         articleItem['press_name'] = press_name
         articleItem['crawled_at'] = datetime.now()
+        articleItem['task_id'] = self.task_id
 
         yield articleItem

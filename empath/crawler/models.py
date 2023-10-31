@@ -6,6 +6,7 @@ class YoutubeSearchResult(models.Model):
     keyword = models.CharField(max_length=100)
     video_id = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)
 
 
 class YoutubeVideo(models.Model):
@@ -20,6 +21,7 @@ class YoutubeVideo(models.Model):
     category_id = models.IntegerField()
     comment_count = models.IntegerField()
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)
 
 
 class YoutubeVideoComment(models.Model):
@@ -27,6 +29,7 @@ class YoutubeVideoComment(models.Model):
     content = models.TextField()
     video_id = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)
 
 
 class YoutubeChannel(models.Model):
@@ -38,6 +41,7 @@ class YoutubeChannel(models.Model):
     subscriber_count = models.IntegerField()
     video_count = models.IntegerField()
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)
 
 
 class NaverSearchResult(models.Model):
@@ -48,6 +52,7 @@ class NaverSearchResult(models.Model):
     link = models.CharField(max_length=200)
     summary = models.CharField(max_length=200)
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)
 
 
 class NaverNewsArticle(models.Model):
@@ -59,3 +64,4 @@ class NaverNewsArticle(models.Model):
     published_at = models.DateTimeField()
     press_name = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.IntegerField(null=True)

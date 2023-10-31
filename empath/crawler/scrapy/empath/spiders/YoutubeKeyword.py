@@ -15,7 +15,8 @@ class YoutubeKeywordSpider(scrapy.Spider):
     allowed_domains = ['youtube.com', 'googleapis.com']
     start_urls = ['https://www.googleapis.com/youtube/v3/']
 
-    def __init__(self, keywords='', limit='', *args, **kwargs):
+    def __init__(self, task_id, keywords='', limit='', *args, **kwargs):
+        self.task_id = task_id
         self.keywords = keywords
         self.keyword_list = keywords.split(',')
         try:
@@ -56,4 +57,5 @@ class YoutubeKeywordSpider(scrapy.Spider):
                     item['keyword'] = response.meta['keyword']
                     item['video_id'] = result['id']['videoId']
                     item['crawled_at'] = datetime.now()
+                    item['task_id'] = self.task_id
                     yield item

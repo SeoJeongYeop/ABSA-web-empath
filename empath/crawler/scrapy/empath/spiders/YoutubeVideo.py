@@ -20,7 +20,8 @@ class YoutubeVideoSpider(scrapy.Spider):
     allowed_domains = ['youtube.com', 'googleapis.com']
     start_urls = ['https://www.googleapis.com/youtube/v3/']
 
-    def __init__(self, ids='', limit='', *args, **kwargs):
+    def __init__(self, task_id, ids='', limit='', *args, **kwargs):
+        self.task_id = task_id
         self.ids = ids.split(',')
         try:
             self.limit = int(limit) if limit != '' else 5
@@ -87,6 +88,7 @@ class YoutubeVideoSpider(scrapy.Spider):
                     snippet['publishedAt'])
                 item['published_at'] = published_at
                 item['crawled_at'] = datetime.now()
+                item['task_id'] = self.task_id
 
                 yield item
 
@@ -141,5 +143,6 @@ class YoutubeVideoSpider(scrapy.Spider):
             commentItem['content'] = content
             commentItem['video_id'] = response.meta['video_id']
             commentItem['crawled_at'] = datetime.now()
+            commentItem['task_id'] = self.task_id
 
             yield commentItem

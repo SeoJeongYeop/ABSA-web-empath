@@ -10,6 +10,7 @@ class YoutubeSearchResultItem(scrapy.Item):
     keyword = scrapy.Field()
     video_id = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
 
 
 class YoutubeVideoItem(scrapy.Item):
@@ -25,12 +26,14 @@ class YoutubeVideoItem(scrapy.Item):
     #  statistics
     comment_count = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
 
 
 class YoutubeCommentItem(scrapy.Item):
     content = scrapy.Field()
     video_id = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
 
 
 class YoutubeChannelItem(scrapy.Item):
@@ -42,6 +45,7 @@ class YoutubeChannelItem(scrapy.Item):
     subscriber_count = scrapy.Field()
     video_count = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
 
 
 class NaverNewsItem(scrapy.Item):
@@ -51,6 +55,7 @@ class NaverNewsItem(scrapy.Item):
     link = scrapy.Field()
     summary = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
 
 
 class NaverNewsArticleItem(scrapy.Item):
@@ -65,3 +70,4 @@ class NaverNewsArticleItem(scrapy.Item):
     published_at = scrapy.Field()
     press_name = scrapy.Field()
     crawled_at = scrapy.Field()
+    task_id = scrapy.Field()
