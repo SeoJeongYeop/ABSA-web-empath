@@ -1,0 +1,40 @@
+{% extends 'main.html' %} {% load static %} {% block content %}
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between mb-5">
+    <h2>Monitor</h2>
+    <a class="btn btn-secondary d-flex align-items-center" role="button" href="..">돌아가기</a>
+  </div>
+  <div class="row">
+    {% for task in tasks %}
+    <div class="col-lg-4 col-6">
+      <div class="card bg-light">
+        <div class="card-header d-flex justify-content-between">
+          <span class="text-muted">{{task.platform}}</span>
+          <span class="text-muted">{{task.created_at}}</span>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">
+            {% if task.status == 'error' %}
+            <span class="badge bg-pastel-danger text-danger me-2">{{task.status}}</span>
+            {% elif task.status == 'success'%}
+            <span class="badge bg-pastel-success text-success me-2">{{task.status}}</span>
+            {% elif task.status == 'run'%}
+            <span class="badge bg-pastel-warning text-warning me-2">{{task.status}}</span>
+            {%endif%} {{task.name}}
+          </h5>
+          <p class="card-text">
+            {%for keyword in task.keywords %}
+            <span class="badge bg-secondary">{{keyword}}</span>
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {%endfor%}
+  </div>
+</div>
+{% endblock content %} {% block script %}
+<script src="{% static 'js/monitor.js' %}" defer></script>
+{% endblock script %}

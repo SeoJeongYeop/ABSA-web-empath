@@ -16,5 +16,16 @@
   --gray-800: #444444;
   --gray-900: #232527;
   --bootstrap-primary: #0d6efd;
+  --bootstrap-secondary: #6c757d;
   --bootstrap-light: #f8f9fa;
+  --bootstrap-danger: #dc3545;
+  --bootstrap-success: #198754;
+  --bootstrap-warning: #ffc107;
+  --pastel-primary: #94b0ff;
+  --pastel-secondary: #a9b2b9;
+  --pastel-light: #f0f2f5;
+  --pastel-danger: #e6a4aa;
+  --pastel-success: #9fd4ab;
+  --normal-run: #ff9800;
+  --pastel-warning: #ffd54f;
 }

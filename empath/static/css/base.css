@@ -24,7 +24,9 @@ body {
   position: relative;
   padding-bottom: 80px;
 }
-
+header {
+  background-color: var(--gray-200);
+}
 footer {
   width: 100%;
   height: 80px;
@@ -64,4 +66,17 @@ body::-webkit-scrollbar {
 }
 .text-doco-none {
   text-decoration: none;
+}
+
+.bg-pastel-danger {
+  background-color: var(--pastel-danger);
+}
+.bg-pastel-success {
+  background-color: var(--pastel-success);
+}
+.bg-pastel-primary {
+  background-color: var(--pastel-primary);
+}
+.bg-pastel-warning {
+  background-color: var(--pastel-warning);
 }

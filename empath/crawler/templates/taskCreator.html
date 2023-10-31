@@ -1,0 +1,56 @@
+{% extends 'main.html' %} {% load static %} {% block content %}
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between mb-5">
+    <h2>Task Creator</h2>
+    <a class="btn btn-secondary d-flex align-items-center" role="button" href="task">Task 목록</a>
+  </div>
+  <form id="taskForm">
+    <div class="row mb-3">
+      <div class="col-6">
+        <label for="platform" class="form-label">플랫폼<span class="required-star">*</span></label>
+        <select class="form-select" id="platform" name="platform" required>
+          <option value="news" selected>뉴스</option>
+          <option value="youtube">유튜브</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label for="name" class="form-label">이름</label>
+        <input type="text" class="form-control" id="name" name="name" placeholder="입력하지 않으면 자동 생성됩니다" />
+      </div>
+    </div>
+    <div class="mb-3">
+      <label for="keywords" class="form-label">키워드<span class="required-star">*</span></label>
+      <div class="row">
+        <div class="col-10">
+          <input type="text" class="form-control" id="keywords" name="keywords" />
+        </div>
+        <div class="col-2 text-end">
+          <button type="button" id="addKeyword" class="btn btn-primary mb-3 text-nowrap">추가</button>
+        </div>
+        <div id="keywordContainer"></div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label for="from" class="form-label">from</label>
+        <input type="date" class="form-control" id="from" name="from" />
+      </div>
+      <div class="col-6">
+        <label for="end" class="form-label">end</label>
+        <input type="date" class="form-control" id="end" name="end" />
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="limit" class="form-label">수집 개수(1~100)</label>
+      <input type="number" class="form-control" id="limit" name="limit" min="0" max="100" />
+    </div>
+    <div class="mb-3 text-end">
+      <button type="submit" class="btn btn-primary">생성</button>
+    </div>
+  </form>
+</div>
+{% endblock content %} {% block script %}
+<script src="{% static 'js/monitor.js' %}" defer></script>
+{% endblock script %}
