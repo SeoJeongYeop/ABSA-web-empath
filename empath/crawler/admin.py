@@ -1,5 +1,5 @@
 from django.contrib import admin
-from crawler.models import NaverSearchResult, NaverNewsArticle, YoutubeSearchResult, YoutubeVideo, YoutubeVideoComment
+from crawler.models import NaverSearchResult, NaverNewsArticle, YoutubeSearchResult, YoutubeVideo, YoutubeVideoComment, Task
 from import_export.admin import ImportExportMixin
 
 
@@ -30,8 +30,15 @@ class YoutubeVideoCommentAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ("id", "content", "video_id", "crawled_at")
 
 
+class TaskAdmin(ImportExportMixin, admin.ModelAdmin):
+    search_fields = ["id", "name", "keywords", "platform"]
+    list_display = ("id", "platform", "name", "keywords",
+                    "created_at", "ds", "de", "limit", "status")
+
+
 admin.site.register(NaverSearchResult, NaverSearchResultAdmin)
 admin.site.register(NaverNewsArticle, NaverNewsArticleAdmin)
 admin.site.register(YoutubeSearchResult, YoutubeSearchResultAdmin)
 admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
 admin.site.register(YoutubeVideoComment, YoutubeVideoCommentAdmin)
+admin.site.register(Task, TaskAdmin)

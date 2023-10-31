@@ -65,3 +65,30 @@ class NaverNewsArticle(models.Model):
     press_name = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
     task_id = models.IntegerField(null=True)
+
+
+class Task(models.Model):
+    id = models.AutoField(primary_key=True)
+    # platform: news, youtube
+    platform = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=True)
+    keywords = models.TextField()  # 콤마로 구분된 키워드 목록
+    created_at = models.DateTimeField(auto_now_add=True)
+    ds = models.DateTimeField(null=True)
+    de = models.DateTimeField(null=True)
+    limit = models.IntegerField(null=True)
+    # status 상태 구분
+    status = models.CharField(max_length=20)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'platform': self.platform,
+            'name': self.name,
+            'keywords': self.keywords.split(","),
+            'created_at': self.created_at.strftime("%Y-%m-%d %H:%M"),
+            'ds': self.ds,
+            'de': self.de,
+            'limit': self.limit,
+            'status': self.status
+        }
