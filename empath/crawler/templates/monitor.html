@@ -7,7 +7,7 @@
   </div>
   <div class="row">
     {% for task in tasks %}
-    <div class="col-lg-4 col-6">
+    <div class="col-lg-4 col-md-6 col-12 mb-3">
       <div class="card bg-light">
         <div class="card-header d-flex justify-content-between">
           <span class="text-muted">{{task.platform}}</span>
@@ -16,11 +16,13 @@
         <div class="card-body">
           <h5 class="card-title">
             {% if task.status == 'error' %}
-            <span class="badge bg-pastel-danger text-danger me-2">{{task.status}}</span>
-            {% elif task.status == 'success'%}
-            <span class="badge bg-pastel-success text-success me-2">{{task.status}}</span>
+            <span class="badge bg-pastel-danger text-danger me-2">오류</span>
+            {% elif task.status == 'done'%}
+            <span class="badge bg-pastel-success text-success me-2">완료</span>
             {% elif task.status == 'run'%}
-            <span class="badge bg-pastel-warning text-warning me-2">{{task.status}}</span>
+            <span class="badge bg-pastel-warning text-run me-2">수집중</span>
+            {% elif task.status == 'run2'%}
+            <span class="badge bg-pastel-warning text-run me-2">댓글수집중</span>
             {%endif%} {{task.name}}
           </h5>
           <p class="card-text">

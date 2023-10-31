@@ -1,6 +1,9 @@
 from django.contrib import admin
-from crawler.models import NaverSearchResult, NaverNewsArticle, YoutubeSearchResult, YoutubeVideo, YoutubeVideoComment, Task
 from import_export.admin import ImportExportMixin
+
+from crawler.models import (NaverNewsArticle, NaverSearchResult, Task,
+                            YoutubeSearchResult, YoutubeVideo,
+                            YoutubeVideoComment)
 
 
 class NaverSearchResultAdmin(ImportExportMixin, admin.ModelAdmin):

@@ -80,3 +80,9 @@ body::-webkit-scrollbar {
 .bg-pastel-warning {
   background-color: var(--pastel-warning);
 }
+.bg-pastel-run {
+  background-color: var(--pastel-run);
+}
+.text-run {
+  color: var(--normal-run);
+}

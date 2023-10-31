@@ -1,16 +1,23 @@
+import json
+import logging
 from datetime import datetime
+
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+
 from crawler.models import Task
-import logging
-import json
 from handle_error import get_fail_res, get_missing_data_msg
 
 
-class TaskDoneView(TemplateView):
-    def post(self, request):
+@csrf_exempt
+def task_done(request):
+    if request.method == 'POST':
         try:
+            print(" request.POST",  request.POST)
+            print(" request.body",  request.body)
+
             task_id = request.POST.get('task_id')
             status = request.POST.get('status')
             task = Task.objects.get(id=task_id)
@@ -50,7 +57,9 @@ class TaskCreateView(TemplateView):
             name = f'[{now}]{platform}:{short_keyword}'
         ds = data.get('ds', None)
         de = data.get('de', None)
-        limit = data.get('limit', None)
+        limit = data.get('limit', 5)
+        if type(limit) is not 'number':
+            limit = 5
 
         print("platform", platform)
         print("name", name)
@@ -68,8 +77,8 @@ class TaskCreateView(TemplateView):
             limit=limit,
             status='created'
         )
-        print("task", task)
-        return JsonResponse({'status': 'success', 'data': task.to_json})
+        print("task json", task.to_json())
+        return JsonResponse({'status': 'success', 'data': task.to_json()})
 
 
 class MonitorView(TemplateView):

@@ -157,4 +157,4 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-CRAWLING_LOG_PATH = os.path.join(BASE_DIR, 'crawler/log')
+CRAWLING_LOG_PATH = os.path.join(BASE_DIR, 'crawler/scrapy/log')

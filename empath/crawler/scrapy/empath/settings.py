@@ -48,9 +48,10 @@ DOWNLOAD_DELAY = 1
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-# SPIDER_MIDDLEWARES = {
-#    "empath.middlewares.EmpathSpiderMiddleware": 543,
-# }
+SPIDER_MIDDLEWARES = {
+    "empath.middlewares.EmpathSpiderMiddleware": 543,
+}
+
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
@@ -120,3 +121,6 @@ DATABASE_NAME = get_secret('DATABASE_NAME')
 
 # YouTube API KEY
 YOUTUBE_API_KEY = get_secret('YOUTUBE_API_KEY')
+
+SERVER_ADDRESS = get_secret('SERVER_ADDRESS')
+SPIDER_DONE_URL = SERVER_ADDRESS + '/crawler/task/done/'

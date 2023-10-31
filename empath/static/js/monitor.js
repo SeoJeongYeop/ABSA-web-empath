@@ -25,7 +25,6 @@ $(function () {
   const endInput = $('#end');
 
   const today = new Date().toISOString().split('T')[0];
-  console.log;
   fromInput.prop('max', today);
   endInput.prop('max', today);
   let keywords = [];
@@ -33,11 +32,10 @@ $(function () {
   if (storageKeywords) keywords = storageKeywords.split(',');
   keywords.forEach((keyword) => {
     $('#keywordContainer').append(badge(keyword));
-
-    // keywordInput.value = ''; // 입력 필드 초기화
   });
 
-  $('#addKeyword').click(function () {
+  $('#addKeyword').click(function (e) {
+    e.preventDefault();
     let keyword = $('#keywords').val();
     if (keywords.includes(keyword)) {
       alert('이미 존재하는 키워드입니다.');
@@ -89,27 +87,29 @@ $(function () {
     console.log('keywords', keywords);
     console.log('platform', $('#platform').val());
 
-    const data = {
-      platform: $('#platform').val(),
-      keywords: keywords.join(','),
-      name: $('#name').val(),
-      from: $('#from').val(),
-      end: $('#end').val(),
-      limit: $('#limit').val()
-    };
+    if (confirm('Task를 생성하시겠습니까?')) {
+      const data = {
+        platform: $('#platform').val(),
+        keywords: keywords.join(','),
+        name: $('#name').val(),
+        from: $('#from').val(),
+        end: $('#end').val(),
+        limit: $('#limit').val()
+      };
 
-    $.ajax({
-      url: '/crawler/task/create/',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(data),
-      success: function (response) {
-        console.log('Success:', response);
-        localStorage.removeItem('keywords');
-      },
-      error: function (error) {
-        console.error('Error:', error);
-      }
-    });
+      $.ajax({
+        url: '/crawler/task/create/',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+          console.log('Success:', response);
+          localStorage.removeItem('keywords');
+        },
+        error: function (error) {
+          console.error('Error:', error);
+        }
+      });
+    }
   });
 });
