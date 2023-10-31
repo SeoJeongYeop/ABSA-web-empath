@@ -160,3 +160,4 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRAWLING_LOG_PATH = os.path.join(BASE_DIR, 'crawler/scrapy/log')
 LOGIN_REDIRECT_URL = '/absa/'
+LOGOUT_REDIRECT_URL = '/absa/'

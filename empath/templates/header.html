@@ -16,8 +16,15 @@
       </ul>
 
       <div class="text-end">
-        <button type="button" class="btn btn-primary me-2">Login</button>
-        <button type="button" class="btn btn-secondary">Sign-up</button>
+        {% if user.is_authenticated %}
+        <form id="logout-form" method="post" action="{% url 'accounts:Logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary">로그아웃</button>
+        </form>
+        {%else%}
+        <a href="/accounts/login/" class="btn btn-primary me-2" role="button">로그인</a>
+        <a href="/accounts/signup/" class="btn btn-secondary" role="button">회원가입</a>
+        {%endif%}
       </div>
     </div>
   </div>

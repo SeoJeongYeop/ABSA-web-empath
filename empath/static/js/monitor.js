@@ -104,10 +104,15 @@ $(function () {
         data: JSON.stringify(data),
         success: function (response) {
           console.log('Success:', response);
-          localStorage.removeItem('keywords');
+          if (response.status === 'success') {
+            localStorage.removeItem('keywords');
+          } else {
+            alert(response.message);
+          }
         },
         error: function (error) {
           console.error('Error:', error);
+          alert(error);
         }
       });
     }

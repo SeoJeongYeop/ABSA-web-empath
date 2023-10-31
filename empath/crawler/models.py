@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 
 
@@ -79,16 +81,20 @@ class Task(models.Model):
     limit = models.IntegerField(null=True)
     # status 상태 구분
     status = models.CharField(max_length=20)
+    user_id = models.IntegerField(null=True)
 
     def to_json(self):
+        nine_hours = timedelta(hours=9)
+        kst = self.created_at + nine_hours
         return {
             'id': self.id,
             'platform': self.platform,
             'name': self.name,
             'keywords': self.keywords.split(","),
-            'created_at': self.created_at.strftime("%Y-%m-%d %H:%M"),
+            'created_at': kst.strftime("%Y-%m-%d %H:%M"),
             'ds': self.ds,
             'de': self.de,
             'limit': self.limit,
-            'status': self.status
+            'status': self.status,
+            'user_id': self.user_id
         }
