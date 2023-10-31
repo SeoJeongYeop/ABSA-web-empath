@@ -21,6 +21,7 @@ from django.urls import include, path
 urlpatterns = [
     path('', lambda req: redirect('/absa/')),
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
     path('absa/', include('absa.urls')),
     path('crawler/', include('crawler.urls'))
 ]

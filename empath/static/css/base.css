@@ -86,3 +86,7 @@ body::-webkit-scrollbar {
 .text-run {
   color: var(--normal-run);
 }
+.text-weak {
+  color: var(--gray-400);
+  font-size: 12px;
+}

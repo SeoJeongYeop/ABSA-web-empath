@@ -1,0 +1,40 @@
+{% extends 'main.html' %} {% load static %} {% block content %}
+<div class="d-flex justify-content-center container my-5">
+  <div class="col-lg-4 col-6">
+    <div class="d-flex justify-content-center mb-3">
+      <img src="/static/images/logo_large.png" alt="Logo" class="w-50" />
+    </div>
+    {% for error in form.non_field_errors %}
+    <div class="text-center mb-3">
+      {% if error == "Please enter a correct username and password. Note that both fields may be case-sensitive." %}
+      <strong>Username과 비밀번호가 일치하지 않습니다</strong>
+      {% else %}
+      <strong>{{ error }}</strong>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <form method="post" action="{% url 'accounts:Login' %}">
+      {% csrf_token %}
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" name="username" id="username" placeholder="exampleusername" required />
+        <label for="username">Username</label>
+      </div>
+      <div class="form-floating mb-3">
+        <input
+          type="password"
+          class="form-control"
+          name="password"
+          id="password"
+          placeholder="examplepw"
+          autocomplete="off"
+          required
+        />
+        <label for="password">Password</label>
+      </div>
+      <div class="d-flex flex-column">
+        <button type="submit" class="btn btn-primary mb-2">Login</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %} {% block script %} {% endblock script %}

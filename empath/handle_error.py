@@ -9,7 +9,8 @@ err_to_msg = {
     "missing_required_data": "필수 데이터가 없습니다.",
     "db_exception": "DB에 에러가 발생했습니다.",
     "undefined_exception": "정의되지 않은 오류가 발생했습니다.",
-    "object_not_found": "데이터를 찾을 수 없습니다."
+    "object_not_found": "데이터를 찾을 수 없습니다.",
+    "invalid_data_format": "데이터가 형식에 맞지 않습니다."
 }
 
 

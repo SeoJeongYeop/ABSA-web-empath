@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'import_export',
     'crawler',
-    'absa'
+    'absa',
+    'accounts'
 ]
 
 MIDDLEWARE = [
@@ -158,3 +159,4 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRAWLING_LOG_PATH = os.path.join(BASE_DIR, 'crawler/scrapy/log')
+LOGIN_REDIRECT_URL = '/absa/'
