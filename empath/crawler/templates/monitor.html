@@ -3,7 +3,27 @@
 <div class="container my-4">
   <div class="d-flex justify-content-between mb-5">
     <h2>Monitor</h2>
-    <a class="btn btn-secondary d-flex align-items-center" role="button" href="..">돌아가기</a>
+    <div class="d-flex gap-2">
+      <div class="dropdown">
+        <button
+          id="sort"
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          최신순
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="/crawler/task/?sort=-created_at">최신순</a></li>
+          <li><a class="dropdown-item" href="/crawler/task/?sort=created_at">오래된순</a></li>
+          <li><a class="dropdown-item" href="/crawler/task/?sort=name">이름순</a></li>
+        </ul>
+      </div>
+      <div>
+        <a class="btn btn-secondary d-flex align-items-center" role="button" href="..">돌아가기</a>
+      </div>
+    </div>
   </div>
   <div class="row">
     {% for task in tasks %}
@@ -14,7 +34,7 @@
           <span class="text-muted">{{task.created_at}}</span>
         </div>
         <div class="card-body">
-          <h5 class="card-title">
+          <div class="card-title fs-5 d-flex">
             {% if task.status == 'error' %}
             <span class="badge bg-pastel-danger text-danger me-2">오류</span>
             {% elif task.status == 'done'%}
@@ -23,13 +43,19 @@
             <span class="badge bg-pastel-warning text-run me-2">수집중</span>
             {% elif task.status == 'run2'%}
             <span class="badge bg-pastel-warning text-run me-2">댓글수집중</span>
-            {%endif%} {{task.name}}
-          </h5>
+            {%endif%}
+            <span id="task-{{task.id}}">{{task.name}}</span>
+          </div>
           <p class="card-text">
             {%for keyword in task.keywords %}
             <span class="badge bg-secondary">{{keyword}}</span>
             {% endfor %}
           </p>
+        </div>
+        <div class="card-footer text-body-secondary text-end">
+          <button id="btn-task-{{task.id}}" class="btn btn-sm btn-light" onclick="changeName('{{task.id}}')">
+            이름 변경
+          </button>
         </div>
       </div>
     </div>

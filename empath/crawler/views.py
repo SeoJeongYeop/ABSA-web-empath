@@ -28,6 +28,24 @@ def task_done(request):
         return JsonResponse({'status': 'success'})
 
 
+@csrf_exempt
+def task_name_change(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            task_id = data.get('id')
+            name = data.get('name')
+
+            task = Task.objects.get(id=task_id)
+            task.name = name
+            task.save()
+        except Task.DoesNotExist as e:
+            logging.exception(f'TaskNameChangeView {e}')
+            return JsonResponse(get_fail_res('object_not_found'))
+
+        return JsonResponse({'status': 'success'})
+
+
 class TaskCreateView(TemplateView):
     def post(self, request):
         if request.user.is_authenticated:
@@ -80,22 +98,17 @@ class MonitorView(TemplateView):
     def get(self, request):
         if request.user.is_superuser:
             tasks = Task.objects.all()
-            tasks = [task.to_json() for task in tasks]
-            context = {'tasks': tasks}
-            print("superuser context", context)
-            return render(request, 'monitor.html', context=context)
         elif request.user.is_authenticated:
             tasks = Task.objects.filter(user_id=request.user.id)
-            tasks = [task.to_json() for task in tasks]
-            context = {'tasks': tasks}
-            print("authenticated context", context)
-            return render(request, 'monitor.html', context=context)
         else:
-            tasks = Task.objects.filter(user_id=0)
-            tasks = [task.to_json() for task in tasks]
-            context = {'tasks': tasks}
-            print("anonymous context", context)
-            return render(request, 'monitor.html', context=context)
+            tasks = Task.objects.filter(user_id=0).order_by()
+        sort_field = request.GET.get('sort', ('-created_at'))
+        sort_field = set(sort_field.split(','))
+        tasks = tasks.order_by(*sort_field)
+        tasks = [task.to_json() for task in tasks]
+        context = {'tasks': tasks}
+        print("MonitorView context", context)
+        return render(request, 'monitor.html', context=context)
 
 
 class TaskView(TemplateView):

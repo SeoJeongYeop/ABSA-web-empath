@@ -21,9 +21,15 @@ $(function () {
 
     return badge;
   };
+
+  // 모니터링 정렬 드롭다운 문구 변경
+  const sortText = $(`.dropdown-item[href="/crawler/task/${location.search}"]`).text();
+  $('#sort').text(sortText);
+
   const fromInput = $('#from');
   const endInput = $('#end');
 
+  // Task 생성 date input 날짜 제한
   const today = new Date().toISOString().split('T')[0];
   fromInput.prop('max', today);
   endInput.prop('max', today);
@@ -118,3 +124,58 @@ $(function () {
     }
   });
 });
+
+const changeName = (taskId) => {
+  const target = `task-${taskId}`;
+  const beforeName = $(`#${target}`).text();
+  $(`#${target}`).html(
+    `<input type="text" id="new-name-${target}" class="form-control-sm" value="${beforeName}" data-before="${beforeName}"></input>`
+  );
+  $('.card-footer .btn-light').prop('disabled', true);
+  $(`#btn-${target}`).removeAttr('onclick');
+  $(`#btn-${target}`).attr('onclick', `postTaskName(${taskId})`);
+  $(`#btn-${target}`).prop('disabled', false);
+  $(`#btn-${target}`).text('저장');
+};
+
+const postTaskName = (taskId) => {
+  const target = `task-${taskId}`;
+  console.log('postTaskName');
+  const newName = $(`#new-name-${target}`).val().trim();
+  const beforeName = $(`#new-name-${target}`).data('before').trim();
+  if (newName === beforeName) {
+    return;
+  }
+  console.log('newName', newName);
+  console.log('beforeName', beforeName);
+  const data = { id: taskId, name: newName };
+  $.ajax({
+    url: '/crawler/task/name-change/',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(data),
+    success: function (response) {
+      if (response.status === 'success') {
+        $(`#${target}`).text(newName);
+        alert('이름 변경 성공');
+      } else {
+        $(`#${target}`).text(beforeName);
+        alert('이름 변경 실패');
+      }
+      resetTaskName(taskId);
+    },
+    error: function (error) {
+      alert(error);
+      $(`#${target}`).text(beforeName);
+      resetTaskName(taskId);
+    }
+  });
+};
+
+function resetTaskName(taskId) {
+  const target = `task-${taskId}`;
+  $('.card-footer .btn-light').prop('disabled', false);
+  $(`#btn-${target}`).removeAttr('onclick');
+  $(`#btn-${target}`).attr('onclick', `changeName('${taskId}')`);
+  $(`#btn-${target}`).text('이름 변경');
+}
