@@ -1,10 +1,11 @@
 from django.urls import path
 
-from absa import views
+from absa import views, views_absa
 
 app_name = 'absa'
 
 urlpatterns = [
     path('', views.IndexView.as_view(), name='Index'),
-    path('infer/<int:task_id>', views.InferView.as_view(), name='Infer')
+    path('task/<int:task_id>/', views.TaskDetailView.as_view(), name='TaskDetail'),
+    path('infer/<int:task_id>/', views_absa.InferView.as_view(), name='Infer')
 ]

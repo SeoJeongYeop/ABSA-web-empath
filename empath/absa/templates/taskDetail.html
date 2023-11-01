@@ -3,12 +3,11 @@
 <div class="container my-4">
   <div class="d-flex justify-content-between mb-5">
     <h2>ABSA</h2>
-    <a class="btn btn-secondary d-flex align-items-center" role="button" href="task">돌아가기</a>
+    <a class="btn btn-secondary d-flex align-items-center" role="button" href="/absa">돌아가기</a>
   </div>
   <div class="row">
-    {% for task in tasks %}
     <div class="col-lg-4 col-md-6 col-12 mb-3">
-      <div class="card bg-light cusor-pointer" onclick="location.href='/absa/task/{{task.id}}/'">
+      <div class="card bg-light">
         <div class="card-header d-flex justify-content-between">
           <span class="text-muted">{{task.platform}}</span>
           <span class="text-muted">{{task.created_at}}</span>
@@ -33,10 +32,18 @@
         </div>
       </div>
     </div>
+  </div>
+  <div>키워드 분석</div>
+  <div class="row">
+    {%for keyword, info in analysis.items %}
+    <div>{{keyword}}</div>
+    <div>{{info.num_sentence}} 문장에 대해 분석한 결과 다음과 같은 단어가 나타났습니다</div>
+    <div>{{info.token_count}}</div>
 
-    {%endfor%}
+    {% comment %}
+    <div>{{pair.0}}</div>
+    <div>{{pair.1}}</div>
+    {% endcomment %} {%endfor%}
   </div>
 </div>
-{% endblock content %} {% block script %}
-<script src="{% static 'js/monitor.js' %}" defer></script>
-{% endblock script %}
+{% endblock content %} {% block script %} {% endblock script %}

@@ -101,7 +101,7 @@ class MonitorView(TemplateView):
         elif request.user.is_authenticated:
             tasks = Task.objects.filter(user_id=request.user.id)
         else:
-            tasks = Task.objects.filter(user_id=0).order_by()
+            tasks = Task.objects.filter(user_id=0)
         sort_field = request.GET.get('sort', ('-created_at'))
         sort_field = set(sort_field.split(','))
         tasks = tasks.order_by(*sort_field)

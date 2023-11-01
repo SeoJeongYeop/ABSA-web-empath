@@ -71,3 +71,4 @@ class NaverNewsArticleItem(scrapy.Item):
     press_name = scrapy.Field()
     crawled_at = scrapy.Field()
     task_id = scrapy.Field()
+    keyword = scrapy.Field()

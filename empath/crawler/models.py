@@ -25,6 +25,19 @@ class YoutubeVideo(models.Model):
     crawled_at = models.DateTimeField(auto_now_add=True)
     task_id = models.IntegerField(null=True)
 
+    def to_json(self):
+        nine_hours = timedelta(hours=9)
+        kst = self.crawled_at + nine_hours
+        return {
+            'video_id': self.video_id,
+            'title': self.title,
+            'published_at': self.published_at,
+            'channel_title': self.channel_title,
+            'comment_count': self.comment_count,
+            'crawled_at': kst.strftime("%Y-%m-%d %H:%M"),
+            'task_id': self.task_id,
+        }
+
 
 class YoutubeVideoComment(models.Model):
     id = models.AutoField(primary_key=True)
@@ -32,6 +45,17 @@ class YoutubeVideoComment(models.Model):
     video_id = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
     task_id = models.IntegerField(null=True)
+
+    def to_json(self):
+        nine_hours = timedelta(hours=9)
+        kst = self.crawled_at + nine_hours
+        return {
+            'id': self.id,
+            'content': self.content,
+            'video_id': self.video_id,
+            'crawled_at': kst.strftime("%Y-%m-%d %H:%M"),
+            'task_id': self.task_id
+        }
 
 
 class YoutubeChannel(models.Model):
@@ -67,6 +91,23 @@ class NaverNewsArticle(models.Model):
     press_name = models.CharField(max_length=20)
     crawled_at = models.DateTimeField(auto_now_add=True)
     task_id = models.IntegerField(null=True)
+    keyword = models.CharField(max_length=100, null=True)
+
+    def to_json(self):
+        nine_hours = timedelta(hours=9)
+        kst = self.crawled_at + nine_hours
+        return {
+            'id': self.id,
+            'oid': self.oid,
+            'aid': self.aid,
+            'title': self.title,
+            'content': self.content,
+            'published_at': self.published_at,
+            'crawled_at': kst.strftime("%Y-%m-%d %H:%M"),
+            'press_name': self.press_name,
+            'task_id': self.task_id,
+            'keyword': self.keyword
+        }
 
 
 class Task(models.Model):

@@ -171,5 +171,6 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         articleItem['press_name'] = press_name
         articleItem['crawled_at'] = datetime.now()
         articleItem['task_id'] = self.task_id
+        articleItem['keyword'] = response.meta['keyword']
 
         yield articleItem

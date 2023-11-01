@@ -1,104 +1,182 @@
+import json
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
-from django.core.cache import cache
-
-import re
-import os
-import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-from empath.settings import BASE_DIR
-
-MODEL_DIR = os.path.join(BASE_DIR, "absa/checkpoint")
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_DIR)
-tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+from crawler.models import Task, NaverNewsArticle, YoutubeSearchResult, YoutubeVideoComment, YoutubeVideo
+from absa.models import Analysis
+from kiwipiepy import Kiwi
+from kiwipiepy.utils import Stopwords
+from collections import Counter
 
 
 class IndexView(TemplateView):
     def get(self, request):
-
-        return render(request, 'index.html')
-
-
-class InferView(TemplateView):
-
-    def get(self, request, task_id):
-        print("task_id", task_id)
-        context = {"pred": []}
-
-        input_text = "액션보다는 하나하나에 좀 더 몰입하고 무게를 주기 위해서 슬로우 모션과 잔인하면서도 섬뜩한 장면들을 음향과 음악으로 채워버리는 연출은 정말 대단했다"
-        pred = self.pred_absa(input_text)[0]
-        valid = self.check_valid(pred)
-        print('valid', valid)
-
-        if valid:
-            absa_li = re.sub(r'(<pos>|<neg>|<neu>)', '####\\1',
-                             pred).split("####")[1:]
-            print("absa_li", absa_li)
-            triplets = []
-            for absa_i in absa_li:
-                absa_dict = {}
-                polarity = absa_i.strip()[:5]
-                absa_dict['polarity'] = polarity
-                ao = absa_i.strip()[5:]
-                idx = ao.find('<opinion>')
-                if idx >= 0:
-                    aspect = ao[:idx].strip()
-                    opinion = ao[idx+9:].strip()
-                    absa_dict['aspect'] = aspect
-                    absa_dict['opinion'] = opinion
-                    triplets.append(absa_dict)
-                else:
-                    valid = False
-
-        if not valid:
-            print("invalid")
-            context["pred"] = []
+        if request.user.is_superuser:
+            tasks = Task.objects.filter(status="done")
+        elif request.user.is_authenticated:
+            tasks = Task.objects.filter(user_id=request.user.id, status="done")
         else:
-            context["pred"] = triplets
-        print('context', context)
+            tasks = Task.objects.filter(user_id=0, status="done")
+        sort_field = request.GET.get('sort', ('-created_at'))
+        sort_field = set(sort_field.split(','))
+        tasks = tasks.order_by(*sort_field)
+        tasks = [task.to_json() for task in tasks]
+        context = {'tasks': tasks}
 
-        return render(request, 'infer.html', context=context)
+        return render(request, 'index.html', context=context)
 
-    def pred_absa(self, input_text):
 
-        encoded_dict = tokenizer.encode_plus(
-            text=input_text,
-            padding='max_length',
-            max_length=128,
-            truncation=True,
-            return_tensors='pt'
+class TaskDetailView(TemplateView):
+    def get(self, request, task_id):
+        context = {}
+        task = Task.objects.get(id=task_id)
+        print("TaskDetailView", task)
+        context['task'] = task.to_json()
+        print(context['task'])
+        analysis = Analysis.objects.filter(task=task)
+        if len(analysis) > 0:
+            context['analysis'] = {}
+            for analy in analysis:
+                context['analysis'][analy.keyword] = analy.to_json()
+            print("context", context)
+
+            return render(request, 'taskDetail.html', context=context)
+        print("Analysis 없어서 분석")
+        # analysis가 없으면 메소드 호출해서 analysis 데이터 만듦
+        keywords = task.keywords.split(",")
+        analysis = {}
+        for keyword in keywords:
+            if task.platform == "news":
+                data = self.get_news_data(task, keyword)
+            elif task.platform == "youtube":
+                data = self.get_youtube_data(task, keyword)
+            analysis[keyword] = data
+
+        context['analysis'] = analysis
+        return render(request, 'taskDetail.html', context=context)
+
+    def get_news_data(self, task: Task, keyword: str):
+        articles = NaverNewsArticle.objects.filter(
+            task_id=task.id, keyword=keyword)
+
+        articles = [article.to_json() for article in articles]
+
+        kiwi = Kiwi()
+        stopwords = Stopwords()
+        total_token_counts = Counter()
+        total_n_sentence = 0
+        for article in articles:
+            sentences = kiwi.split_into_sents(article['content'])
+            n_sentence = len(sentences)
+            total_n_sentence += n_sentence
+            article['n_sentence'] = n_sentence
+
+            article_token_counts = Counter()
+            for sentence in sentences:
+                tokens = kiwi.tokenize(
+                    sentence.text,
+                    normalize_coda=True,
+                    stopwords=stopwords
+                )
+                tokens_filtered = []
+                for token in tokens:
+                    if token.tag in ALLOW_TAG:
+                        tokens_filtered.append(token.form)
+                sentence_token_counts = Counter(tokens_filtered)
+                article_token_counts.update(sentence_token_counts)
+                total_token_counts.update(sentence_token_counts)
+            sorted_token_counts = sorted(
+                article_token_counts.items(), key=lambda x: x[1], reverse=True)
+            article['token_count'] = sorted_token_counts[:10]
+
+        sorted_token_counts = sorted(
+            total_token_counts.items(), key=lambda x: x[1], reverse=True)
+
+        analysis = Analysis.objects.create(
+            task=task,
+            keyword=keyword,
+            status='text',
+            user_id=task.user_id,
+            num_sentence=total_n_sentence,
+            token_count=json.dumps(
+                sorted_token_counts[:10], ensure_ascii=False)
         )
-        input_ids = encoded_dict['input_ids']
-        attention_mask = encoded_dict['attention_mask']
+        print("analysis", analysis)
+        ret = analysis.to_json()
 
-        print(f"Inferencing...")
-        model.eval()
-        with torch.no_grad():
-            outs_dict = model.generate(
-                input_ids=input_ids.to('cpu'),
-                attention_mask=attention_mask.to('cpu'),
-                max_length=128,
-                prefix_allowed_tokens_fn=None,
-                output_scores=True,
-                return_dict_in_generate=True
-            )
-            outs = outs_dict["sequences"]
-            pred = [tokenizer.decode(ids, skip_special_tokens=True)
-                    for ids in outs]
-            print("pred", pred)
+        # ret = {"n_sentence": total_n_sentence,
+        #        "token_count": sorted_token_counts[:10],
+        #        "data": articles}
+        return ret
 
-            return pred
+    def get_youtube_data(self, task: Task, keyword: str):
 
-    def check_valid(self, pred):
-        valid = True
+        video_ids = YoutubeSearchResult.objects.filter(
+            task_id=task.id, keyword=keyword).values_list('video_id', flat=True)
+        comments = YoutubeVideoComment.objects.filter(
+            task_id=task.id, video_id__in=video_ids)
 
-        aps = re.findall("(<\w+>)(.*?)(?=<\w+>|$)", pred)
-        for ap in aps:
-            for ele in ap:
-                # some element is missing
-                if len(ele) == 0:
-                    valid = False
-                    break
-            if valid is False:
-                break
-        return valid
+        video_dict = {}
+        for comment in comments:
+            video_id = comment.video_id
+            if video_id in video_dict:
+                video_dict[video_id]['comments'].append(comment.to_json())
+                pass
+            else:
+                video = YoutubeVideo.objects.get(video_id=comment.video_id)
+                video_dict[video_id] = video.to_json()
+                video_dict[video_id]['comments'] = [comment.to_json()]
+
+        videos = [video_info for video_info in video_dict.values()]
+
+        kiwi = Kiwi()
+        stopwords = Stopwords()
+        total_token_counts = Counter()
+        total_n_sentence = 0
+        for video in videos:
+            comments = video['comments']
+            video_token_counts = Counter()
+            video['n_sentence'] = 0
+            for comment in comments:
+                sentences = kiwi.split_into_sents(comment['content'])
+                n_sentence = len(sentences)
+                video['n_sentence'] += n_sentence
+                total_n_sentence += n_sentence
+
+                for sentence in sentences:
+                    tokens = kiwi.tokenize(
+                        sentence.text,
+                        normalize_coda=True,
+                        stopwords=stopwords
+                    )
+                    tokens_filtered = []
+                    for token in tokens:
+                        if token.tag in ALLOW_TAG:
+                            tokens_filtered.append(token.form)
+                    sentence_token_counts = Counter(tokens_filtered)
+                    video_token_counts.update(sentence_token_counts)
+                    total_token_counts.update(sentence_token_counts)
+            sorted_token_counts = sorted(
+                video_token_counts.items(), key=lambda x: x[1], reverse=True)
+            video['token_count'] = sorted_token_counts[:10]
+
+        sorted_token_counts = sorted(
+            total_token_counts.items(), key=lambda x: x[1], reverse=True)
+
+        analysis = Analysis.objects.create(
+            task=task,
+            keyword=keyword,
+            status='text',
+            user_id=task.user_id,
+            num_sentence=total_n_sentence,
+            token_count=json.dumps(
+                sorted_token_counts[:10], ensure_ascii=False)
+        )
+        print("analysis", analysis)
+        ret = analysis.to_json()
+        # ret = {"n_sentence": total_n_sentence,
+        #        "token_count": sorted_token_counts[:10],
+        #        "data": videos}
+        return ret
+
+
+ALLOW_TAG = ['NNG', 'NNP', 'NP', 'VV', 'VA', 'MM', 'MAG']

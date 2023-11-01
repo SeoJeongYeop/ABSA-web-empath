@@ -7,29 +7,30 @@ from crawler.models import (NaverNewsArticle, NaverSearchResult, Task,
 
 
 class NaverSearchResultAdmin(ImportExportMixin, admin.ModelAdmin):
-    search_fields = ["id", "title", "keyword", "press_name"]
+    search_fields = ["title", "keyword", "press_name"]
     list_display = ("id", "title", "keyword",
                     "press_name", "summary")
 
 
 class NaverNewsArticleAdmin(ImportExportMixin, admin.ModelAdmin):
-    search_fields = ["id", "title", "content", "press_name"]
-    list_display = ("id", "title", "press_name", "content", "published_at")
+    search_fields = ["title", "keyword", "press_name", "task_id"]
+    list_display = ("id", "title", "keyword", "press_name",
+                    "content", "published_at", "task_id")
 
 
 class YoutubeSearchResultAdmin(ImportExportMixin, admin.ModelAdmin):
-    search_fields = ["id", "keyword", "video_id"]
+    search_fields = ["keyword", "video_id"]
     list_display = ("id", "keyword", "video_id", "crawled_at")
 
 
 class YoutubeVideoAdmin(ImportExportMixin, admin.ModelAdmin):
-    search_fields = ["id", "video_id", "title", "channel_title"]
+    search_fields = ["video_id", "title", "channel_title"]
     list_display = ("id", "video_id", "title",
                     "published_at", "description", "channel_id", "channel_title", "tags", "category_id", "comment_count")
 
 
 class YoutubeVideoCommentAdmin(ImportExportMixin, admin.ModelAdmin):
-    search_fields = ["id", "content", "video_id"]
+    search_fields = ["content", "video_id"]
     list_display = ("id", "content", "video_id", "crawled_at")
 
 
