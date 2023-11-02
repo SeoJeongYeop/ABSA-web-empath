@@ -6,10 +6,11 @@ class Barchart {
     left: 30
   };
 
-  constructor(svg, width = 400, height = 240) {
+  constructor(svg, keyword, width = 400, height = 240) {
     this.svg = svg;
     this.width = width;
     this.height = height;
+    this.keyword = keyword;
   }
 
   initialize() {
@@ -21,7 +22,7 @@ class Barchart {
 
     this.xScale = d3.scaleBand();
     this.yScale = d3.scaleLinear();
-    this.zScale = d3.scaleOrdinal().range(d3.schemePastel1);
+    this.zScale = d3.scaleOrdinal().range(PALETTE);
 
     this.svg
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -45,7 +46,13 @@ class Barchart {
       .attr('y', (d) => this.yScale(data[d]))
       .attr('width', this.xScale.bandwidth())
       .attr('height', (d) => this.height - this.yScale(data[d]))
-      .attr('fill', (d) => this.zScale(d));
+      .attr('fill', (d) => this.zScale(d))
+      .on('click', (d, i) => {
+        highlight(
+          categories.filter((idx) => idx === i),
+          this.keyword
+        );
+      });
 
     this.xAxis
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top + this.height})`)
@@ -63,3 +70,15 @@ class Barchart {
     this.svg.style('display', 'none');
   }
 }
+PALETTE = [
+  '#1f77b4',
+  '#d62728',
+  '#ff7f0e',
+  '#2ca02c',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  '#17becf'
+];

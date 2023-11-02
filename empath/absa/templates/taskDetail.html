@@ -1,8 +1,8 @@
 {% extends 'main.html' %} {% load static %} {% block content %}
 
 <div class="container my-4">
-  <div class="d-flex justify-content-between mb-5">
-    <h2>ABSA</h2>
+  <div class="d-flex justify-content-between mb-4">
+    <h2>웹 담론 분석</h2>
     <a class="btn btn-secondary d-flex align-items-center" role="button" href="/absa">돌아가기</a>
   </div>
   <div class="row mb-3">
@@ -33,37 +33,42 @@
       </div>
     </div>
   </div>
-  <div class="fs-4 bold mb-4">키워드 분석</div>
-  <div id="keyword-analysis" class="row mb-3">
+
+  <div id="keyword-analysis">
     {%for keyword, info in analysis.items %}
-    <div class="col-12 col-lg-6">
-      <div class="fs-5 bold mb-2">{{keyword}}</div>
-      <div class="text-muted">{{info.num_sentence}} 문장에 대해 분석한 결과 다음과 같은 단어가 나타났습니다</div>
-      <div id="word-count-{{info.id}}" class="d-flex flex-row justify-content-between">
-        <svg></svg>
-      </div>
-    </div>
-    {%empty%}
-    <div class="col-12 col-lg-6">결과분석 중입니다. 잠시후 다시 시도해주세요</div>
-    {%endfor%}
-  </div>
-  <div class="fs-4 bold mb-4">감성 분석</div>
-  <div class="row mb-3">
-    {%for keyword, info in analysis.items %}
-    <div class="col-12 col-lg-6">
-      <div class="infer fs-5 bold mb-2" data-keyword="{{keyword}}">{{keyword}}</div>
-      <div id="infer-{{keyword}}" class="d-flex flex-column justify-content-between">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <div id="sentiment-{{keyword}}" class="d-flex flex-row justify-content-between">
+    <div class="fs-4 bold mb-2">{{keyword}}</div>
+    <div class="row mb-3">
+      <div class="col-12 col-lg-6">
+        <div class="fs-5 bold mb-2">키워드 분석</div>
+        <div class="text-muted mb-3">{{info.num_sentence}} 문장에 대해 분석한 결과 다음과 같은 단어가 나타났습니다</div>
+        <div id="word-count-{{info.id}}" class="d-flex flex-row justify-content-between">
           <svg></svg>
         </div>
-        <div id="accordion-{{keyword}}" class="accordion"></div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="fs-5 bold mb-2">감성 분석</div>
+        <div id="desc-{{keyword|cut:" "}}" class="text-muted mb-3"></div>
+        <div
+          id="infer-{{keyword|cut:" "}}"
+          class="d-flex flex-column justify-content-between infer"
+          data-keyword="{{keyword}}"
+        >
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div id="sentiment-{{keyword|cut:" "}}" class="d-flex flex-row justify-content-between">
+            <svg></svg>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="my-4">
+      필터:
+      <span id="filter-{{keyword|cut:" "}}" class="ms-2 badge bg-info"></span>
+    </div>
+    <div id="accordion-{{keyword|cut:" "}}" class="accordion mb-4" style="min-height:100px"></div>
     {%empty%}
-    <div class="col-12 col-lg-6">결과분석 중입니다. 잠시후 다시 시도해주세요</div>
+    <div class="fs-5">결과분석 중입니다. 잠시후 다시 시도해주세요</div>
     {%endfor%}
   </div>
 </div>

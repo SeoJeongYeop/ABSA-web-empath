@@ -24,7 +24,9 @@ $(function () {
 
   // 모니터링 정렬 드롭다운 문구 변경
   const sortText = $(`.dropdown-item[href="/crawler/task/${location.search}"]`).text();
-  $('#sort').text(sortText);
+  if (sortText === '') {
+    $('#sort').text('최신순');
+  } else $('#sort').text(sortText);
 
   const fromInput = $('#from');
   const endInput = $('#end');

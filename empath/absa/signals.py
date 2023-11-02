@@ -75,7 +75,7 @@ def get_news_triplet(sentiment: Sentiment, keyword: str):
                         polarity = absa_i.strip()[:5]
                         aspect = ao[:idx].strip()
                         opinion = ao[idx+9:].strip()
-                        if check_wrong_ao(aspect, opinion):
+                        if check_wrong_ao(aspect, opinion, sentence.text):
                             continue
                         absa_dict['polarity'].append(polarity)
                         absa_dict['aspect'].append(aspect)

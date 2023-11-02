@@ -10,3 +10,6 @@
 .bg-gray-200 {
   background-color: var(--gray-200);
 }
+.accordion-item.hide {
+  display: none !important;
+}

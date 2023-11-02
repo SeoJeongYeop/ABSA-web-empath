@@ -2,7 +2,7 @@
 
 <div class="container my-4">
   <div class="d-flex justify-content-between mb-5">
-    <h2>Task Creator</h2>
+    <h2>데이터 수집 Task 생성</h2>
     <a class="btn btn-secondary d-flex align-items-center" role="button" href="task">Task 목록</a>
   </div>
   <form id="taskForm">
@@ -43,8 +43,8 @@
     </div>
 
     <div class="mb-3">
-      <label for="limit" class="form-label">수집 개수(1~100)</label>
-      <input type="number" class="form-control" id="limit" name="limit" min="0" max="100" value="5" />
+      <label for="limit" class="form-label">수집 개수(1~10)</label>
+      <input type="number" class="form-control" id="limit" name="limit" min="1" max="10" value="1" />
     </div>
     <div class="mb-3 text-end">
       <button type="submit" class="btn btn-primary">생성</button>
