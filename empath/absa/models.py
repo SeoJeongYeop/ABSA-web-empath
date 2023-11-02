@@ -66,7 +66,7 @@ class Triplet(models.Model):
             "id": self.id,
             "sentiment_id": self.sentiment.id,
             "raw_sentence": self.raw_sentence,
-            "aspects": self.aspects,  # json.loads(self.aspects),
-            "opinions": self.opinions,  # json.loads(self.opinions),
-            "polarities": self.polarities  # json.loads(self.polarities)
+            "aspects": json.loads(self.aspects),
+            "opinions": json.loads(self.opinions),
+            "polarities": json.loads(self.polarities)
         }
