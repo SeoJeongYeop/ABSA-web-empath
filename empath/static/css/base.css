@@ -77,6 +77,9 @@ body::-webkit-scrollbar {
 .bg-pastel-primary {
   background-color: var(--pastel-primary);
 }
+.bg-pastel-secondary {
+  background-color: var(--pastel-secondary);
+}
 .bg-pastel-warning {
   background-color: var(--pastel-warning);
 }

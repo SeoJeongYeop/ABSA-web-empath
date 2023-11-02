@@ -1,0 +1,12 @@
+.text-pos {
+  color: var(--bootstrap-primary);
+}
+.text-neg {
+  color: var(--bootstrap-danger);
+}
+.text-neu {
+  color: var(--bootstrap-secondary);
+}
+.bg-gray-200 {
+  background-color: var(--gray-200);
+}

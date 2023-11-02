@@ -52,11 +52,14 @@
     {%for keyword, info in analysis.items %}
     <div class="col-12 col-lg-6">
       <div class="infer fs-5 bold mb-2" data-keyword="{{keyword}}">{{keyword}}</div>
-      <div id="infer-{{keyword}}" class="d-flex flex-row justify-content-between">
+      <div id="infer-{{keyword}}" class="d-flex flex-column justify-content-between">
         <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <svg></svg>
+        <div id="sentiment-{{keyword}}" class="d-flex flex-row justify-content-between">
+          <svg></svg>
+        </div>
+        <div id="accordion-{{keyword}}" class="accordion"></div>
       </div>
     </div>
     {%empty%}
