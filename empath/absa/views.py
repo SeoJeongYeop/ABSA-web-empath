@@ -8,9 +8,9 @@ from django.views.generic.base import TemplateView
 from kiwipiepy import Kiwi
 from kiwipiepy.utils import Stopwords
 
-from absa.models import Analysis
-from crawler.models import (NaverNewsArticle, Task, YoutubeSearchResult,
-                            YoutubeVideo, YoutubeVideoComment)
+from absa.models import Analysis, Sentiment, Triplet
+from crawler.models import (
+    NaverNewsArticle, Task, YoutubeSearchResult, YoutubeVideo, YoutubeVideoComment)
 
 
 class IndexView(TemplateView):
@@ -37,25 +37,11 @@ class TaskDetailView(TemplateView):
         context['task'] = task.to_json()
         print(context['task'])
         analysis = Analysis.objects.filter(task=task)
+        context['analysis'] = {}
         if len(analysis) > 0:
-            context['analysis'] = {}
             for analy in analysis:
                 context['analysis'][analy.keyword] = analy.to_json()
-            print("context", context)
-
-            return render(request, 'taskDetail.html', context=context)
-        print("Analysis 없어서 분석")
-        # analysis가 없으면 메소드 호출해서 analysis 데이터 만듦
-        keywords = task.keywords.split(",")
-        analysis = {}
-        for keyword in keywords:
-            if task.platform == "news":
-                data = get_news_data(task, keyword)
-            elif task.platform == "youtube":
-                data = get_youtube_data(task, keyword)
-            analysis[keyword] = data
-
-        context['analysis'] = analysis
+        print("context", context)
         return render(request, 'taskDetail.html', context=context)
 
 
@@ -81,6 +67,27 @@ class WordCountView(View):
             data[keyword] = analysis
 
         return JsonResponse(data)
+
+
+class InferView(View):
+
+    def get(self, request, task_id):
+        ret = {'sentiments': {}, 'triplets': {}}
+        print("task_id", task_id)
+        keywords = request.GET.get("keywords", "")  # 콤마로 연결된 문자열
+        keywords = keywords.split(",")
+        print("keywords", type(keywords), keywords)
+        sentiments = Sentiment.objects.filter(
+            task_id=task_id, keyword__in=keywords)
+        print("sentiments", sentiments)
+
+        for sentiment in sentiments:
+            if sentiment.status == 'done':
+                triplets = Triplet.objects.filter(sentiment_id=sentiment.id)
+                triplets_json = [triplet.to_json() for triplet in triplets]
+                ret['triplets'][sentiment.keyword] = triplets_json
+            ret['sentiments'][sentiment.keyword] = sentiment.to_json()
+        return JsonResponse(ret)
 
 
 def get_news_data(task: Task, keyword: str):

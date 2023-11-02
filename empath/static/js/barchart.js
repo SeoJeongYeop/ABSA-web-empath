@@ -2,11 +2,11 @@ class Barchart {
   margin = {
     top: 10,
     right: 10,
-    bottom: 40,
-    left: 40
+    bottom: 30,
+    left: 30
   };
 
-  constructor(svg, width = 500, height = 240) {
+  constructor(svg, width = 400, height = 240) {
     this.svg = svg;
     this.width = width;
     this.height = height;
@@ -49,7 +49,7 @@ class Barchart {
 
     this.xAxis
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top + this.height})`)
-      .style('font-size', '0.9rem')
+      .style('font-size', '0.8rem')
       .call(d3.axisBottom(this.xScale));
 
     this.yAxis

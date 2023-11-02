@@ -34,7 +34,7 @@
     </div>
   </div>
   <div class="fs-4 bold mb-4">키워드 분석</div>
-  <div class="row mb-3">
+  <div id="keyword-analysis" class="row mb-3">
     {%for keyword, info in analysis.items %}
     <div class="col-12 col-lg-6">
       <div class="fs-5 bold mb-2">{{keyword}}</div>
@@ -43,7 +43,24 @@
         <svg></svg>
       </div>
     </div>
-
+    {%empty%}
+    <div class="col-12 col-lg-6">결과분석 중입니다. 잠시후 다시 시도해주세요</div>
+    {%endfor%}
+  </div>
+  <div class="fs-4 bold mb-4">감성 분석</div>
+  <div class="row mb-3">
+    {%for keyword, info in analysis.items %}
+    <div class="col-12 col-lg-6">
+      <div class="infer fs-5 bold mb-2" data-keyword="{{keyword}}">{{keyword}}</div>
+      <div id="infer-{{keyword}}" class="d-flex flex-row justify-content-between">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <svg></svg>
+      </div>
+    </div>
+    {%empty%}
+    <div class="col-12 col-lg-6">결과분석 중입니다. 잠시후 다시 시도해주세요</div>
     {%endfor%}
   </div>
 </div>

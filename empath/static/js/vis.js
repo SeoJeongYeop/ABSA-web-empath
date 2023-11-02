@@ -7,13 +7,45 @@ $(function () {
     BarCharts = countData.map((countObj) => {
       return Object.keys(countObj).map((key) => {
         const obj = Object.values(countObj[key])[0];
-        BarChart = new Barchart(`#word-count-${key} svg`);
-        BarChart.initialize();
-        updateBarChart(BarChart, obj);
-        return BarChart;
+        const bc = new Barchart(`#word-count-${key} svg`);
+        bc.initialize();
+        updateBarChart(bc, obj);
+        return bc;
       })[0];
     });
   });
+  const infer = $('.infer');
+  console.log('infer', infer);
+  const keywords = $.map(infer, (d) => $(d).data('keyword'));
+
+  // const keywords = infer.each((d) => d.data('keyword'));
+  console.log('keywords', keywords.join(','));
+  d3.json(`${link}infer/?keywords=${keywords.join(',')}`).then(
+    (jsonData) => {
+      console.log(jsonData);
+      const sentiments = jsonData.sentiments;
+      Object.keys(sentiments).forEach((keyword) => {
+        console.log('status', sentiments[keyword].status);
+        if (sentiments[keyword].status === 'error') {
+          $(`#infer-${keyword}`).html('감성분석에 에러가 발생했습니다.');
+        } else if (sentiments[keyword].status === 'run') {
+          $(`#infer-${keyword}`).html('감성분석 중입니다.');
+        } else {
+          renderTriplet(jsonData.triplets);
+        }
+      });
+    },
+    (reason) => {
+      console.log(reason);
+      const spinner = $('.spinner-border');
+      console.log('spinner', spinner);
+      spinner.each((d) => {
+        console.log('d', spinner[d]);
+        $(spinner[d]).text('데이터를 불러오지 못했습니다.');
+        $(spinner[d]).removeClass('spinner-border');
+      });
+    }
+  ).f;
 });
 
 function getKeywordCount(data) {
@@ -35,4 +67,8 @@ function getKeywordCount(data) {
 function updateBarChart(chart, obj) {
   if (obj === null) chart.delete();
   else chart.update(obj, Object.keys(obj));
+}
+
+function renderTriplet(triplets) {
+  console.log('renderTriplet', triplets);
 }
