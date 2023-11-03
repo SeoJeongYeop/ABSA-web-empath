@@ -67,7 +67,7 @@ def pred_absa(input_text):
             prefix_allowed_tokens_fn=prefix_fn,
             output_scores=True,
             return_dict_in_generate=True,
-            no_repeat_ngram_size=2,
+            no_repeat_ngram_size=1,
             do_sample=True,
             top_p=0.95,
             max_time=1.5
