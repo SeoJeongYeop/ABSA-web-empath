@@ -51,15 +51,26 @@ def pred_absa(input_text):
     attention_mask = encoded_dict['attention_mask']
 
     print(f"Inferencing...")
+
+    constrained_vocab = prepare_constrained_tokens(tokenizer)
+    prefix_fn_obj = Prefix_fn_cls(
+        tokenizer, constrained_vocab, input_ids.to('cpu'))
+
+    def prefix_fn(batch_id, sent): return prefix_fn_obj.get(batch_id, sent)
+
     model.eval()
     with torch.no_grad():
         outs_dict = model.generate(
             input_ids=input_ids.to('cpu'),
             attention_mask=attention_mask.to('cpu'),
             max_length=128,
-            prefix_allowed_tokens_fn=None,
+            prefix_allowed_tokens_fn=prefix_fn,
             output_scores=True,
-            return_dict_in_generate=True
+            return_dict_in_generate=True,
+            no_repeat_ngram_size=2,
+            do_sample=True,
+            top_p=0.95,
+            max_time=1.5
         )
         outs = outs_dict["sequences"]
         pred = [tokenizer.decode(ids, skip_special_tokens=True)
