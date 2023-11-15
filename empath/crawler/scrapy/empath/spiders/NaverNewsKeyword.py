@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 
 from ..items import *
-from ..preprocess import cleaning_text, remove_escape
+from ..preprocess import cleaning_text, remove_jamo, remove_escape, reduce_escape
 
 NAVER_SEARCH_LINK = 'https://search.naver.com/search.naver'
 
@@ -152,6 +152,8 @@ class NaverNewsKeywordSpider(scrapy.Spider):
         content = soup.select_one("#dic_area").text
         logging.debug(f"content before {content}")
         content = cleaning_text(content)
+        content, _ = remove_jamo(content)
+        content = reduce_escape(content)
         logging.debug(f"content after {content}")
         published_at = soup.select_one(
             "span.media_end_head_info_datestamp_time").text

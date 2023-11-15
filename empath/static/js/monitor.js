@@ -100,8 +100,8 @@ $(function () {
         platform: $('#platform').val(),
         keywords: keywords.join(','),
         name: $('#name').val(),
-        from: $('#from').val(),
-        end: $('#end').val(),
+        ds: $('#from').val(),
+        de: $('#end').val(),
         limit: $('#limit').val()
       };
 

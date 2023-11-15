@@ -179,11 +179,22 @@ def check_wrong_ao(aspect: str, opinion: str, sentence: str):
         return True
     if a == o:
         return True
+    if is_numeric(a) or is_numeric(o):
+        return True
     if a not in sentence:
         return True
     if 1 < len(a) < 16 and 1 < len(o) < 16:
         return False
     return True
+
+
+def is_numeric(word):
+    pattern = r'^[-]?(\d+|\d+\.\d*)$'
+
+    if re.match(pattern, word):
+        return True
+    else:
+        return False
 
 
 def detect_repeat(text: str):
