@@ -35,16 +35,19 @@
         </div>
         <div class="card-body">
           <div class="card-title fs-5 d-flex">
-            {% if task.status == 'error' %}
-            <span class="badge bg-pastel-danger text-danger me-2">오류</span>
-            {% elif task.status == 'done'%}
-            <span class="badge bg-pastel-success text-success me-2">완료</span>
-            {% elif task.status == 'run'%}
-            <span class="badge bg-pastel-warning text-run me-2">수집중</span>
-            {% elif task.status == 'run2'%}
-            <span class="badge bg-pastel-warning text-run me-2">댓글수집중</span>
-            {%endif%}
-            <span id="task-{{task.id}}">{{task.name}}</span>
+            <div>
+              {% if task.status == 'error' %}
+              <span class="badge bg-pastel-danger text-danger me-2">오류</span>
+              {% elif task.status == 'done'%}
+              <span class="badge bg-pastel-success text-success me-2">완료</span>
+              {% elif task.status == 'run'%}
+              <span class="badge bg-pastel-warning text-run me-2">수집중</span>
+              {% elif task.status == 'run2'%}
+              <span class="badge bg-pastel-warning text-run me-2">댓글수집중</span>
+              {%endif%}
+            </div>
+
+            <span id="task-{{task.id}}" style="word-break: break-all">{{task.name}}</span>
           </div>
           <p class="card-text">
             {%for keyword in task.keywords %}

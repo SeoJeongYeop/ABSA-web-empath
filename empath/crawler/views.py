@@ -70,6 +70,8 @@ class TaskCreateView(TemplateView):
                 name = f'[{now}]{platform}:{short_keyword}'
             ds = data.get('ds', None)
             de = data.get('de', None)
+            if platform == 'youtube':
+                ds, de = None, None
             limit = data.get('limit', 5)
             if type(limit) is not 'number':
                 limit = 5
