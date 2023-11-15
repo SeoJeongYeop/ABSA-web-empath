@@ -159,10 +159,10 @@ const postTaskName = (taskId) => {
     success: function (response) {
       if (response.status === 'success') {
         $(`#${target}`).text(newName);
-        alert('이름 변경 성공');
+        alert('이름을 변경하였습니다.');
       } else {
         $(`#${target}`).text(beforeName);
-        alert('이름 변경 실패');
+        alert('이름을 변경하지 못했습니다.');
       }
       resetTaskName(taskId);
     },

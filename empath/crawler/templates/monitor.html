@@ -28,7 +28,7 @@
   <div class="row">
     {% for task in tasks %}
     <div class="col-lg-4 col-md-6 col-12 mb-3">
-      <div class="card bg-light cursor-pointer" onclick="location.href='/absa/task/{{task.id}}/'">
+      <div class="card bg-light cursor-pointer">
         <div class="card-header d-flex justify-content-between">
           <span class="text-muted">{{task.platform}}</span>
           <span class="text-muted">{{task.created_at}}</span>
@@ -55,10 +55,13 @@
             {% endfor %}
           </p>
         </div>
-        <div class="card-footer text-body-secondary text-end">
+        <div class="card-footer text-body-secondary text-end gap-2">
           <button id="btn-task-{{task.id}}" class="btn btn-sm btn-light" onclick="changeName('{{task.id}}')">
             이름 변경
           </button>
+          {% if task.status == 'done' %}
+          <a href="/absa/task/{{task.id}}/" role="button" class="btn btn-sm btn-primary">상세보기</a>
+          {% endif %}
         </div>
       </div>
     </div>
