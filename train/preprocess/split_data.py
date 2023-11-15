@@ -1,25 +1,46 @@
-import json
+import os
 import random
 
-# JSON 파일 로드
-with open('../data/total_ko_o_first.json', 'r', encoding='utf-8') as json_file:
-    data = json.load(json_file)
+file_dir = '../data/'
+# file_path = 'blog.txt'
+file_path = 'news.txt'
+# file_path = 'youtube.txt'
 
-# 데이터 셔플
+
+save_dir = f'../data/{file_path.split(".")[0]}/'
+os.makedirs(save_dir, exist_ok=True)
+
+data = []
+
+with open(file_dir+file_path, 'r', encoding='utf-8') as file:
+    data = file.readlines()
+
 random.shuffle(data)
 
-# 데이터를 8:2 비율로 나눔
-split_ratio = 0.8
-split_index = int(len(data) * split_ratio)
-train_data = data[:split_index]
-test_data = data[split_index:]
-print("train_data", len(train_data))
-print("test_data", len(test_data))
+total_samples = len(data)
 
+# 훈련/검증/테스트 비율
+train_ratio = 0.7
+dev_ratio = 0.1
 
-# train과 test 데이터를 각각 파일로 저장 (선택사항)
-with open('train_data_o_first.json', 'w', encoding='utf-8') as train_file:
-    json.dump(train_data, train_file, ensure_ascii=False, indent=4)
+train_size = int(total_samples * train_ratio)
+dev_size = int(total_samples * dev_ratio)
 
-with open('test_data_o_first.json', 'w', encoding='utf-8') as test_file:
-    json.dump(test_data, test_file, ensure_ascii=False, indent=4)
+train_data = data[:train_size]
+dev_data = data[train_size:train_size + dev_size]
+test_data = data[train_size + dev_size:]
+
+# 저장
+with open(save_dir + 'train.txt', 'w', encoding='utf-8') as train_file:
+    train_file.writelines(train_data)
+
+with open(save_dir + 'dev.txt', 'w', encoding='utf-8') as dev_file:
+    dev_file.writelines(dev_data)
+
+with open(save_dir + 'test.txt', 'w', encoding='utf-8') as test_file:
+    test_file.writelines(test_data)
+print(file_path)
+print(f"Total samples: {total_samples}")
+print(f"Train samples: {len(train_data)}")
+print(f"Dev samples: {len(dev_data)}")
+print(f"Test samples: {len(test_data)}")

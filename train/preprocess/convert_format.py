@@ -7,7 +7,7 @@ polarityMap = {
 }
 
 if __name__ == '__main__':
-    with open('data/EXSA2122303090.json', 'r', encoding='utf-8') as json_file:
+    with open('../data/EXSA2122303090.json', 'r', encoding='utf-8') as json_file:
         input_data = json.load(json_file)
 
     documents = input_data.get('document')
@@ -39,5 +39,5 @@ if __name__ == '__main__':
                     result.append(ret)
 
     print("result len:", len(result))
-    with open('data/exsa.json', 'w', encoding='utf-8') as output_file:
+    with open('../data/exsa.json', 'w', encoding='utf-8') as output_file:
         json.dump(result, output_file, ensure_ascii=False, indent=2)
