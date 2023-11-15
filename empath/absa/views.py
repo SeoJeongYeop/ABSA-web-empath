@@ -9,8 +9,8 @@ from kiwipiepy import Kiwi
 from kiwipiepy.utils import Stopwords
 
 from absa.models import Analysis, Sentiment, Triplet
-from crawler.models import (
-    NaverNewsArticle, Task, YoutubeSearchResult, YoutubeVideo, YoutubeVideoComment)
+from crawler.models import (NaverNewsArticle, Task, YoutubeSearchResult,
+                            YoutubeVideo, YoutubeVideoComment)
 
 
 class IndexView(TemplateView):

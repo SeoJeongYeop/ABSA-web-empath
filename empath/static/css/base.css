@@ -93,6 +93,6 @@ body::-webkit-scrollbar {
   color: var(--gray-400);
   font-size: 12px;
 }
-.cusor-pointer {
+.cursor-pointer {
   cursor: pointer;
 }

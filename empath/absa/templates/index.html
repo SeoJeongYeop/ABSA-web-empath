@@ -7,7 +7,7 @@
   <div class="row">
     {% for task in tasks %}
     <div class="col-lg-4 col-md-6 col-12 mb-3">
-      <div class="card bg-light cusor-pointer" onclick="location.href='/absa/task/{{task.id}}/'">
+      <div class="card bg-light cursor-pointer" onclick="location.href='/absa/task/{{task.id}}/'">
         <div class="card-header d-flex justify-content-between">
           <span class="text-muted">{{task.platform}}</span>
           <span class="text-muted">{{task.created_at}}</span>
@@ -32,8 +32,19 @@
         </div>
       </div>
     </div>
-
-    {%endfor%}
+    {%empty%} {% if user.is_authenticated %}
+    <div class="fs-5">
+      분석 작업이 없습니다. 데이터 수집작업을 생성해주세요
+      <a class="btn btn-sm btn-primary align-items-center" role="button" href="/crawler/">바로가기</a>
+    </div>
+    {% else %}
+    <div class="fs-5">
+      <p>미디어에서 키워드에 대한 텍스트를 수집하고 분석해보세요</p>
+      <p>자신만의 분석을 만들어보세요</p>
+      <a href="/accounts/login/" class="btn btn-primary me-2" role="button">로그인</a>
+      <a href="/accounts/signup/" class="btn btn-secondary" role="button">회원가입</a>
+    </div>
+    {% endif %} {%endfor%}
   </div>
 </div>
 {% endblock content %} {% block script %}

@@ -77,6 +77,9 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             if not 'sid' not in parse.urlparse(link):
                 # 정상적으로 크롤링 가능한 기사인지 확인
                 continue
+            self.count += 1
+            if self.count > self.limit:
+                break
 
             # 뉴스 제목 파싱
             title = news.select_one('a.news_tit').text
@@ -116,7 +119,6 @@ class NaverNewsKeywordSpider(scrapy.Spider):
             )
 
         # 다음 페이지 이동하여 재귀적으로 스크래핑
-        self.count += len(news_items)
         if len(news_items) != 0 and self.count < self.limit:
             self.params['start'] = response.meta['start'] + 10
             query_string = parse.urlencode(self.params)

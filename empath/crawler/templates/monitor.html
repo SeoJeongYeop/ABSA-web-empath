@@ -28,7 +28,7 @@
   <div class="row">
     {% for task in tasks %}
     <div class="col-lg-4 col-md-6 col-12 mb-3">
-      <div class="card bg-light">
+      <div class="card bg-light cursor-pointer" onclick="location.href='/absa/task/{{task.id}}/'">
         <div class="card-header d-flex justify-content-between">
           <span class="text-muted">{{task.platform}}</span>
           <span class="text-muted">{{task.created_at}}</span>
