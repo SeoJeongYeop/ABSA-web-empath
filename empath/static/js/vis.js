@@ -162,9 +162,7 @@ function highlight(xVars, keyword) {
 
       // 감성 필터 적용
       if (!ele.text().includes(target)) {
-        if (ele.hasClass('hide')) {
-          ele.removeClass('hide');
-        } else {
+        if (!ele.hasClass('hide')) {
           ele.addClass('hide');
         }
       } else {
