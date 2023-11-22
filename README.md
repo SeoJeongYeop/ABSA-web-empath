@@ -14,6 +14,7 @@
 - Scrapy
 - Oracle Database
 - ABSA
+<img src="https://github.com/SeoJeongYeop/ABSA-web-empath/assets/41911523/a0e0567b-7c5f-4cea-9555-90ca89b05a29" width="400"/>
 
 ## Dev Server 실행 방법
 
@@ -92,3 +93,7 @@ mv secret_sample.json secret.json
   "SERVER_ADDRESS": "http://127.0.0.1:8001"
 }
 ```
+
+## 분석 결과 화면
+
+<img src="https://github.com/SeoJeongYeop/ABSA-web-empath/assets/41911523/fcb02629-d5ad-44c3-820b-05bd9809dbbb" width="720"/>
