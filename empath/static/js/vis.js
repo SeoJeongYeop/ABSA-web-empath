@@ -147,6 +147,20 @@ function highlight(xVars, keyword) {
   const polMap = { positive: 'pos', negative: 'neg', neutral: 'neu' };
 
   if (polarities.includes(x)) {
+    const filter = $(`#filter-${keyword}`);
+    if (filter.text() !== x) {
+      filter.text(x);
+      if (x == 'positive') {
+        filter.attr('class', 'ms-2 badge bg-primary');
+      } else if (x == 'negative') {
+        filter.attr('class', 'ms-2 badge bg-danger');
+      } else if (x == 'neutral') {
+        filter.attr('class', 'ms-2 badge bg-secondary');
+      }
+    } else {
+      filter.text('');
+    }
+
     const target = polMap[x];
     const container = $(`#accordion-${keyword} .accordion-item`);
     container.each(function () {
@@ -161,29 +175,20 @@ function highlight(xVars, keyword) {
       ele.css('display', 'block');
 
       // 감성 필터 적용
-      if (!ele.text().includes(target)) {
-        if (!ele.hasClass('hide')) {
-          ele.addClass('hide');
-        }
+      if (filter.text().trim() === '') {
+        ele.removeClass('hide');
       } else {
-        if (ele.hasClass('hide')) {
-          ele.removeClass('hide');
+        if (!ele.text().includes(target)) {
+          if (!ele.hasClass('hide')) {
+            ele.addClass('hide');
+          }
+        } else {
+          if (ele.hasClass('hide')) {
+            ele.removeClass('hide');
+          }
         }
       }
     });
-    const filter = $(`#filter-${keyword}`);
-    if (filter.text() !== x) {
-      filter.text(x);
-      if (x == 'positive') {
-        filter.attr('class', 'ms-2 badge bg-primary');
-      } else if (x == 'negative') {
-        filter.attr('class', 'ms-2 badge bg-danger');
-      } else if (x == 'neutral') {
-        filter.attr('class', 'ms-2 badge bg-secondary');
-      }
-    } else {
-      filter.text('');
-    }
   } else {
     const container = $(`#accordion-${keyword} .accordion-item`);
     const filter = $(`#filter-${keyword}`);
